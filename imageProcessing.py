@@ -92,7 +92,7 @@ class ImageProcessor:
         if values:
             try:
                 x, y, w, h = map(int, values.split(","))
-                self.push_undo('Crop')
+                self.push_undo('Cro')
                 self.cv_image = self.cv_image[y:y+h, x:x+w]
                 self.update_display()
             except ValueError:
