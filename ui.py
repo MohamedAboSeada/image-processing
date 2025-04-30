@@ -1,8 +1,7 @@
 import customtkinter as ctk
-from tkinter import filedialog, simpledialog, messagebox, Menu
 import cv2
 import imutils
-from PIL import Image, ImageTk
+from PIL import Image
 
 class ImageEditorUI:
     def __init__(self, root, image_processor):
