@@ -88,15 +88,19 @@ class ImageProcessor:
             self.ui.update_display(self.cv_image, self.original_image)
 
     def crop_image(self):
-        values = simpledialog.askstring("Enter x, y, width, height (comma separated):")
+        values = simpledialog.askstring("Crop", "Enter x, y, width, height (comma separated):")
         if values:
             try:
                 x, y, w, h = map(int, values.split(","))
-                self.push_undo("Crop")
+                self.push_undo('Crop')
                 self.cv_image = self.cv_image[y:y+h, x:x+w]
-                self.ui.update_display(self.cv_image, self.original_image)
+                self.update_display()
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter four valid integers separated by commas.")
+
+
+                
+
 
     def rotate_image_with_crop(self):
         angle = simpledialog.askfloat("Rotate with Crop", "Enter angle")
