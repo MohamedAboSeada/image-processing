@@ -98,10 +98,6 @@ class ImageProcessor:
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter four valid integers separated by commas.")
 
-
-                
-
-
     def rotate_image_with_crop(self):
         angle = simpledialog.askfloat("Rotate with Crop", "Enter angle")
         if angle is not None:
