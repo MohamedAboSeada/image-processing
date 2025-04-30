@@ -11,20 +11,7 @@ class ImageEditorApp:
         self.image_processor = ImageProcessor(None)  # Initialize with None first
         self.ui = ImageEditorUI(root, self.image_processor)
         self.image_processor.ui = self.ui  # Set the UI reference after UI is created
-
-            
-    def open_image(self):
-        ImageProcessor.open_image()
-            
-    def save_image(self):
-        ImageProcessor.save_image()
-                
-    def undo(self):
-        ImageProcessor.undo()
-
-    def reset_image(self):
-        ImageProcessor.reset_image()
-
+        
 if __name__ == '__main__':
     root = ctk.CTk()
     app = ImageEditorApp(root)

@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import cv2
 import imutils
+from tkinter import Menu
 from PIL import Image
 
 class ImageEditorUI:
