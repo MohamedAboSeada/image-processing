@@ -185,7 +185,6 @@ class ImageEditorUI:
         # Filter menu
         self.filter_menu = Menu(self.root, tearoff=0)
         self.filter_menu.add_command(label="Add Salt & Pepper Noise", command=self.image_processor.add_salt_pepper_noise)
-        self.filter_menu.add_command(label="Gaussian Noise", command=self.image_processor.apply_gaussian_noise)
         self.filter_menu.add_command(label="Speckle Noise", command=self.image_processor.apply_speckle_noise)
         self.filter_menu.add_command(label="Poisson Noise", command=self.image_processor.apply_poisson_noise)
         self.filter_menu.add_command(label="Uniform Noise", command=self.image_processor.apply_uniform_noise)

@@ -287,19 +287,6 @@ class ImageProcessor:
         self.cv_image = noisy
         self.ui.update_display(self.cv_image, self.original_image)
 
-    def apply_gaussian_noise(self, mean=0, var=0.1):
-        if self.cv_image is None:
-            messagebox.showwarning("No Image", "Please load an image first.")
-            return
-
-        row, col, ch = self.cv_image.shape
-        sigma = var ** 0.5
-        gauss = np.random.normal(mean, sigma, (row, col, ch)).reshape(row, col, ch)
-        noisy = np.clip(self.cv_image + gauss, 0, 255).astype(np.uint8)
-        self.push_undo("Applied Gaussian Noise")
-        self.cv_image = noisy
-        self.ui.update_display(self.cv_image, self.original_image)
-
     def apply_speckle_noise(self):
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
