@@ -113,19 +113,103 @@ class ImageProcessor:
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter four valid integers separated by commas.")
 
-    def rotate_image_with_crop(self):
-        angle = simpledialog.askfloat("Rotate with Crop", "Enter angle")
-        if angle is not None:
-            self.push_undo("Rotate with Crop")
-            self.cv_image = imutils.rotate_bound(self.cv_image, angle)
+    def rotate_image_window(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for rotation
+        rotate_window = ctk.CTkToplevel(self.ui.root)
+        rotate_window.title("Rotate Image")
+        rotate_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(rotate_window, text="")
+        canvas.pack(expand=True, fill="both")
+
+        # Create controls frame
+        controls_frame = ctk.CTkFrame(rotate_window)
+        controls_frame.pack(pady=10)
+
+        # Angle slider
+        angle_frame = ctk.CTkFrame(controls_frame)
+        angle_frame.pack(pady=5)
+
+        angle_label = ctk.CTkLabel(angle_frame, text="Angle:")
+        angle_label.pack(side="left", padx=5)
+
+        angle_slider = ctk.CTkSlider(angle_frame, from_=-180, to=180, number_of_steps=360, orientation="horizontal", width=300)
+        angle_slider.set(0)  # Default angle
+        angle_slider.pack(side="left", padx=10)
+
+        angle_value_label = ctk.CTkLabel(angle_frame, text="0°")
+        angle_value_label.pack(side="left", padx=5)
+
+        # Checkbox for crop/no crop
+        crop_var = ctk.BooleanVar(value=True)
+        crop_checkbox = ctk.CTkCheckBox(controls_frame, text="Maintain original dimensions (crop)", variable=crop_var)
+        crop_checkbox.pack(pady=5)
+
+        # Function to update the preview
+        def update_preview(*args):
+            angle = angle_slider.get()
+            angle_value_label.configure(text=f"{int(angle)}°")
+
+            preview_image = self.cv_image.copy()
+            if crop_var.get():
+                # Rotate with crop (maintain dimensions)
+                preview_image = imutils.rotate_bound(preview_image, angle)
+            else:
+                # Rotate without crop (may show black corners)
+                preview_image = imutils.rotate(preview_image, angle)
+
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = cv2.cvtColor(preview_image, cv2.COLOR_BGR2RGB)
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        # Connect the slider and checkbox to the update function
+        angle_slider.configure(command=lambda val: update_preview())
+        crop_var.trace_add("write", update_preview)
+
+        # Initial preview
+        update_preview()
+
+        # Confirm and Cancel buttons
+        def confirm():
+            angle = angle_slider.get()
+            with_crop = crop_var.get()
+
+            if with_crop:
+                self.push_undo("Rotate with Crop")
+                self.cv_image = imutils.rotate_bound(self.cv_image, angle)
+            else:
+                self.push_undo("Rotate without Crop")
+                self.cv_image = imutils.rotate(self.cv_image, angle)
+
             self.ui.update_display(self.cv_image, self.original_image)
+            rotate_window.destroy()
+
+        def cancel():
+            rotate_window.destroy()
+
+        button_frame = ctk.CTkFrame(rotate_window)
+        button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
+
+    # Keep these methods for backward compatibility but make them use the new window
+    def rotate_image_with_crop(self):
+        self.rotate_image_window()
 
     def rotate_image_without_crop(self):
-        angle = simpledialog.askfloat("Rotate without Crop", "Enter angle")
-        if angle is not None:
-            self.push_undo("Rotate without Crop")
-            self.cv_image = imutils.rotate(self.cv_image, angle)
-            self.ui.update_display(self.cv_image, self.original_image)
+        self.rotate_image_window()
 
     def adjust_brightness_window(self):
         if self.cv_image is None:
@@ -183,21 +267,169 @@ class ImageProcessor:
         cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
         cancel_button.pack(side="right", padx=5)
 
+    def color_conversion_window(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for color conversion
+        color_window = ctk.CTkToplevel(self.ui.root)
+        color_window.title("Color Conversion")
+        color_window.geometry("900x700")
+
+        # Create a title label
+        title_label = ctk.CTkLabel(color_window, text="Click on an image to apply the conversion", font=("Arial", 16, "bold"))
+        title_label.pack(pady=10)
+
+        # Create a frame for the image grid
+        grid_frame = ctk.CTkFrame(color_window)
+        grid_frame.pack(expand=True, fill="both", padx=10, pady=10)
+
+        # Configure grid layout (2x2)
+        grid_frame.columnconfigure(0, weight=1)
+        grid_frame.columnconfigure(1, weight=1)
+        grid_frame.rowconfigure(0, weight=1)
+        grid_frame.rowconfigure(1, weight=1)
+
+        # Create frames for each color mode
+        bgr_frame = ctk.CTkFrame(grid_frame)
+        bgr_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+        rgb_frame = ctk.CTkFrame(grid_frame)
+        rgb_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+
+        hsv_frame = ctk.CTkFrame(grid_frame)
+        hsv_frame.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+
+        gray_frame = ctk.CTkFrame(grid_frame)
+        gray_frame.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+
+        # Create labels for each color mode
+        bgr_label = ctk.CTkLabel(bgr_frame, text="Original (BGR)")
+        bgr_label.pack(pady=5)
+
+        rgb_label = ctk.CTkLabel(rgb_frame, text="RGB")
+        rgb_label.pack(pady=5)
+
+        hsv_label = ctk.CTkLabel(hsv_frame, text="HSV")
+        hsv_label.pack(pady=5)
+
+        gray_label = ctk.CTkLabel(gray_frame, text="Grayscale")
+        gray_label.pack(pady=5)
+
+        # Create image canvases
+        bgr_canvas = ctk.CTkLabel(bgr_frame, text="")
+        bgr_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        rgb_canvas = ctk.CTkLabel(rgb_frame, text="")
+        rgb_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        hsv_canvas = ctk.CTkLabel(hsv_frame, text="")
+        hsv_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        gray_canvas = ctk.CTkLabel(gray_frame, text="")
+        gray_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        # Prepare the preview images
+        # Original (BGR)
+        bgr_preview = self.cv_image.copy()
+        bgr_preview = cv2.resize(bgr_preview, (300, 200))
+        # For display purposes, we need to convert BGR to RGB for PIL
+        bgr_preview_rgb = cv2.cvtColor(bgr_preview, cv2.COLOR_BGR2RGB)
+        bgr_preview_pil = Image.fromarray(bgr_preview_rgb)
+        bgr_preview_tk = ImageTk.PhotoImage(bgr_preview_pil)
+        bgr_canvas.configure(image=bgr_preview_tk)
+        bgr_canvas.image = bgr_preview_tk
+
+        # RGB
+        # Create a true RGB image by swapping the channels
+        rgb_preview = self.cv_image.copy()
+        # Swap B and R channels to convert BGR to RGB
+        rgb_preview = rgb_preview[:, :, ::-1]
+        rgb_preview = cv2.resize(rgb_preview, (300, 200))
+        # For display, we need RGB format which we already have
+        rgb_preview_rgb = cv2.cvtColor(rgb_preview, cv2.COLOR_BGR2RGB)
+        rgb_preview_pil = Image.fromarray(rgb_preview_rgb)
+        rgb_preview_tk = ImageTk.PhotoImage(rgb_preview_pil)
+        rgb_canvas.configure(image=rgb_preview_tk)
+        rgb_canvas.image = rgb_preview_tk
+
+        # HSV
+        hsv_preview = cv2.cvtColor(self.cv_image.copy(), cv2.COLOR_BGR2HSV)
+        # Enhance the HSV visualization to make it more distinct
+        # Normalize H to 0-255 for better visualization
+        h, s, v = cv2.split(hsv_preview)
+        h_normalized = cv2.normalize(h, None, 0, 255, cv2.NORM_MINMAX)
+        s_normalized = cv2.normalize(s, None, 0, 255, cv2.NORM_MINMAX)
+        v_normalized = cv2.normalize(v, None, 0, 255, cv2.NORM_MINMAX)
+
+        # Create a false-color HSV visualization
+        hsv_display = cv2.merge([h_normalized, s_normalized, v_normalized])
+        hsv_display = cv2.resize(hsv_display, (300, 200))
+        # Convert to RGB for display
+        hsv_display_rgb = cv2.cvtColor(hsv_display, cv2.COLOR_BGR2RGB)
+        hsv_preview_pil = Image.fromarray(hsv_display_rgb)
+        hsv_preview_tk = ImageTk.PhotoImage(hsv_preview_pil)
+        hsv_canvas.configure(image=hsv_preview_tk)
+        hsv_canvas.image = hsv_preview_tk
+
+        # Grayscale
+        gray_preview = cv2.cvtColor(self.cv_image.copy(), cv2.COLOR_BGR2GRAY)
+        # Resize before converting back to RGB for display
+        gray_preview = cv2.resize(gray_preview, (300, 200))
+        # Convert to RGB for display (this will be a true grayscale image)
+        gray_preview_display = cv2.cvtColor(gray_preview, cv2.COLOR_GRAY2RGB)
+        gray_preview_pil = Image.fromarray(gray_preview_display)
+        gray_preview_tk = ImageTk.PhotoImage(gray_preview_pil)
+        gray_canvas.configure(image=gray_preview_tk)
+        gray_canvas.image = gray_preview_tk
+
+        # Define click handlers for each canvas
+        def apply_bgr():
+            # Original is already in BGR, so no conversion needed
+            color_window.destroy()
+
+        def apply_rgb():
+            self.push_undo("Convert to RGB")
+            self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+            self.ui.update_display(self.cv_image, self.original_image)
+            color_window.destroy()
+
+        def apply_hsv():
+            self.push_undo("Convert to HSV")
+            self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
+            self.ui.update_display(self.cv_image, self.original_image)
+            color_window.destroy()
+
+        def apply_gray():
+            self.push_undo("Convert to Grayscale")
+            gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
+            self.cv_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+            self.ui.update_display(self.cv_image, self.original_image)
+            color_window.destroy()
+
+        # Bind click events to canvases
+        bgr_canvas.bind("<Button-1>", lambda e: apply_bgr())
+        rgb_canvas.bind("<Button-1>", lambda e: apply_rgb())
+        hsv_canvas.bind("<Button-1>", lambda e: apply_hsv())
+        gray_canvas.bind("<Button-1>", lambda e: apply_gray())
+
+        # Add cancel button at the bottom
+        button_frame = ctk.CTkFrame(color_window)
+        button_frame.pack(pady=10)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=color_window.destroy)
+        cancel_button.pack(padx=5)
+
+    # Keep these methods for backward compatibility but make them use the new window
     def convert_Rgb(self):
-        self.push_undo("Convert to RGB")
-        self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
-        self.ui.update_display(self.cv_image, self.original_image)
+        self.color_conversion_window()
 
     def convert_Hsv(self):
-        self.push_undo("Convert to HSV")
-        self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
-        self.ui.update_display(self.cv_image, self.original_image)
+        self.color_conversion_window()
 
     def convert_Gray(self):
-        self.push_undo("Convert to Gray")
-        gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
-        self.cv_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-        self.ui.update_display(self.cv_image, self.original_image)
+        self.color_conversion_window()
 
     def split_channels(self):
         b, g, r = cv2.split(self.cv_image)
