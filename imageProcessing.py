@@ -151,11 +151,24 @@ class ImageProcessor:
 
     def split_channels(self):
         b, g, r = cv2.split(self.cv_image)
-        cv2.imshow("Blue", b)
-        cv2.imshow("Green", g)
-        cv2.imshow("Red", r)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        plt.figure(figsize=(12, 4))
+        plt.subplot(1, 3, 1)
+        plt.imshow(b, cmap='gray')
+        plt.title("Blue Channel")
+        plt.axis('off')
+
+        plt.subplot(1, 3, 2)
+        plt.imshow(g, cmap='gray')
+        plt.title("Green Channel")
+        plt.axis('off')
+
+        plt.subplot(1, 3, 3)
+        plt.imshow(r, cmap='gray')
+        plt.title("Red Channel")
+        plt.axis('off')
+
+        plt.tight_layout()
+        plt.show()
 
     def normalize_image(self):
         self.push_undo("Normalize")
