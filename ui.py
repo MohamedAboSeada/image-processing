@@ -3,6 +3,7 @@ import cv2
 from tkinter import Menu
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from PIL import Image
 
 class ImageEditorUI:
     def __init__(self, root, app):
@@ -58,6 +59,11 @@ class ImageEditorUI:
         self.matplot_menu_button = ctk.CTkButton(self.frame_left, text="Matplot", command=self.show_matplot_menu)
         self.matplot_menu_button.pack(pady=5)
 
+        # Add logo at the bottom of frame_left
+        self.logo_image = ctk.CTkImage(Image.open("assets/logo-trans.png"),size=(70, 70))
+        self.logo_label = ctk.CTkLabel(self.frame_left, image=self.logo_image, text="")
+        self.logo_label.pack(side="bottom", pady=10)
+
         # Main image container
         self.image_frame = ctk.CTkFrame(self.root)
         self.image_frame.pack(side="right", expand=True, fill="both", padx=10, pady=10)
@@ -84,6 +90,10 @@ class ImageEditorUI:
 
         self.figure_edited = plt.Figure(figsize=(5, 5), dpi=100)
         self.figure_edited.patch.set_facecolor("#333")  # Set figure background color
+
+        # Increase the zoom level for the matplotlib figures
+        self.figure_original.set_size_inches(6, 6)
+        self.figure_edited.set_size_inches(6, 6)
 
         self.canvas_original = FigureCanvasTkAgg(self.figure_original, self.original_container)
         self.canvas_original.get_tk_widget().configure(bg="#333")  # Set background color
