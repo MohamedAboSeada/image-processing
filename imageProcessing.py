@@ -15,6 +15,7 @@ class ImageProcessor:
         self.undo_stack = []
         self.redo_stack = []  # Add redo stack
         self.history_list = []
+        self.redo_history_list = []  # Add redo history list to track operation names
         self.original_visible = True
 
     def open_image(self):
@@ -40,8 +41,9 @@ class ImageProcessor:
     def undo(self):
         if self.undo_stack:
             self.redo_stack.append(self.cv_image.copy())  # Save current state to redo stack
+            operation = self.history_list.pop()  # Get the operation name before removing it
+            self.redo_history_list.append(operation)  # Save the operation name for redo
             self.cv_image = self.undo_stack.pop()
-            self.history_list.pop()
             self.ui.refresh_history(self.history_list)
             self.ui.update_display(self.cv_image, self.original_image)
 
@@ -49,7 +51,11 @@ class ImageProcessor:
         if self.redo_stack:
             self.undo_stack.append(self.cv_image.copy())  # Save current state to undo stack
             self.cv_image = self.redo_stack.pop()
-            self.history_list.append("Redo")  # Add a placeholder for redo in history
+            if self.redo_history_list:
+                operation = self.redo_history_list.pop()  # Get the original operation name
+                self.history_list.append(operation)  # Add the original operation name to history
+            else:
+                self.history_list.append("Redo")  # Fallback if no operation name is available
             self.ui.refresh_history(self.history_list)
             self.ui.update_display(self.cv_image, self.original_image)
 
@@ -58,6 +64,7 @@ class ImageProcessor:
             self.cv_image = self.original_image.copy()
             self.undo_stack.clear()
             self.redo_stack.clear()  # Clear redo stack on reset
+            self.redo_history_list.clear()  # Clear redo history list on reset
             self.history_list.clear()
             self.ui.refresh_history(self.history_list)
             self.ui.update_display(self.cv_image, self.original_image)
@@ -70,6 +77,7 @@ class ImageProcessor:
                 self.original_image = None
                 self.undo_stack.clear()
                 self.redo_stack.clear()  # Clear redo stack on delete
+                self.redo_history_list.clear()  # Clear redo history list on delete
                 self.history_list.clear()
                 self.ui.refresh_history(self.history_list)
                 self.ui.image_label.configure(image="", text="")
@@ -91,6 +99,7 @@ class ImageProcessor:
         if self.cv_image is not None:
             self.undo_stack.append(self.cv_image.copy())
             self.redo_stack.clear()  # Clear redo stack on new operation
+            self.redo_history_list.clear()  # Clear redo history list on new operation
             self.history_list.append(operation)
             self.ui.refresh_history(self.history_list)
 
