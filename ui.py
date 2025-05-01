@@ -28,6 +28,7 @@ class ImageEditorUI:
             ("Open Image", self.image_processor.open_image),
             ("Save Image", self.image_processor.save_image),
             ("Undo", self.image_processor.undo),
+            ("Redo", self.image_processor.redo),
             ("Reset Image", self.image_processor.reset_image),
             ("Close Image", self.image_processor.close_image)
         ]
