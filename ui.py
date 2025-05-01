@@ -166,7 +166,6 @@ class ImageEditorUI:
         self.edit_menu.add_command(label="Brightness", command=self.app.open_brightness_window)
         self.edit_menu.add_command(label="Color Conversion", command=self.app.open_color_conversion_window)
         self.edit_menu.add_command(label="Threshold", command=self.app.open_threshold_window)
-        self.edit_menu.add_command(label="Normalize", command=self.app.normalize_image)
         self.edit_menu.add_command(label="Double Exposure", command=self.app.open_double_exposure_window)
         self.edit_menu.add_command(label="Compare", command=self.app.open_compare_window)
 
@@ -176,6 +175,7 @@ class ImageEditorUI:
         self.filter_menu.add_command(label="Speckle Noise", command=self.app.apply_speckle_noise)
         self.filter_menu.add_command(label="Poisson Noise", command=self.app.apply_poisson_noise)
         self.filter_menu.add_command(label="Uniform Noise", command=self.app.apply_uniform_noise)
+        self.filter_menu.add_command(label="Normalize", command=self.app.normalize_image)
         self.filter_menu.add_command(label="Equalize Histogram", command=self.app.equalize_histogram)
         self.filter_menu.add_command(label="Averaging Filter", command=self.app.apply_averaging_filter)
         self.filter_menu.add_command(label="Weighted Averaging Filter", command=self.app.apply_weighted_averaging_filter)
