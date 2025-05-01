@@ -126,13 +126,6 @@ class ImageProcessor:
             self.push_undo("Rotate without Crop")
             self.cv_image = imutils.rotate(self.cv_image, angle)
             self.ui.update_display(self.cv_image, self.original_image)
-
-    def flip_image(self, code):
-        self.push_undo("Flip")
-        self.cv_image = cv2.flip(self.cv_image, code)
-        self.ui.update_display(self.cv_image, self.original_image)
-
-
     def adjust_brightness_window(self):
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
@@ -409,6 +402,80 @@ class ImageProcessor:
             threshold_window.destroy()
 
         button_frame = ctk.CTkFrame(threshold_window)
+        button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
+
+    def adjust_flip(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for flip adjustment
+        flip_window = ctk.CTkToplevel(self.ui.root)
+        flip_window.title("Flip Adjustment")
+        flip_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(flip_window, text="")  # Remove default "ctk label" text
+        canvas.pack(expand=True, fill="both")
+
+        # Create radio buttons for flip options
+        flip_option = ctk.StringVar(value="horizontal")
+
+        def update_preview(*args):
+            option = flip_option.get()
+            preview_image = self.cv_image.copy()
+            if option == "horizontal":
+                preview_image = cv2.flip(preview_image, 1)
+            elif option == "vertical":
+                preview_image = cv2.flip(preview_image, 0)
+            elif option == "both":
+                preview_image = cv2.flip(preview_image, -1)
+
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = cv2.cvtColor(preview_image, cv2.COLOR_BGR2RGB)
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        # Trace the flip_option variable to call update_preview on change
+        flip_option.trace_add("write", update_preview)
+
+        horizontal_button = ctk.CTkRadioButton(flip_window, text="Flip Horizontally", variable=flip_option, value="horizontal")
+        horizontal_button.pack(anchor="w", padx=10, pady=5)
+
+        vertical_button = ctk.CTkRadioButton(flip_window, text="Flip Vertically", variable=flip_option, value="vertical")
+        vertical_button.pack(anchor="w", padx=10, pady=5)
+
+        both_button = ctk.CTkRadioButton(flip_window, text="Flip Both", variable=flip_option, value="both")
+        both_button.pack(anchor="w", padx=10, pady=5)
+
+        # Update preview immediately for the default option
+        update_preview()
+
+        # Confirm and Cancel buttons
+        def confirm():
+            option = flip_option.get()
+            self.push_undo("Flip")
+            if option == "horizontal":
+                self.cv_image = cv2.flip(self.cv_image, 1)
+            elif option == "vertical":
+                self.cv_image = cv2.flip(self.cv_image, 0)
+            elif option == "both":
+                self.cv_image = cv2.flip(self.cv_image, -1)
+            self.ui.update_display(self.cv_image, self.original_image)
+            flip_window.destroy()
+
+        def cancel():
+            flip_window.destroy()
+
+        button_frame = ctk.CTkFrame(flip_window)
         button_frame.pack(pady=10)
 
         confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
