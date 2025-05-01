@@ -3,6 +3,8 @@ import cv2
 import imutils
 from tkinter import Menu
 from PIL import Image
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class ImageEditorUI:
     def __init__(self, root, image_processor):
@@ -65,92 +67,58 @@ class ImageEditorUI:
         self.edited_container = ctk.CTkFrame(self.image_frame)
         self.edited_container.pack(side="left", expand=True, fill="both", padx=5, pady=5)
         
+        # Caption for edited image
+        self.edited_caption = ctk.CTkLabel(self.edited_container, text="Edited", font=("Arial", 12))
+        self.edited_caption.pack(side="bottom", pady=5)
+        
         # Create container for original image (right)
         self.original_container = ctk.CTkFrame(self.image_frame)
         self.original_container.pack(side="right", expand=True, fill="both", padx=5, pady=5)
         
-        # Create relative positioning frames for edited image
-        self.edited_relative = ctk.CTkFrame(self.edited_container)
-        self.edited_relative.pack(expand=True, fill="both")
-        self.edited_relative.pack_propagate(False)  # Prevent frame from shrinking
+        # Caption for original image
+        self.original_caption = ctk.CTkLabel(self.original_container, text="Original", font=("Arial", 12))
+        self.original_caption.pack(side="bottom", pady=5)
         
-        # Create relative positioning frames for original image
-        self.original_relative = ctk.CTkFrame(self.original_container)
-        self.original_relative.pack(expand=True, fill="both")
-        self.original_relative.pack_propagate(False)  # Prevent frame from shrinking
-        
-        # Labels for images (positioned absolutely)
-        self.edited_label = ctk.CTkLabel(
-            self.edited_relative, 
-            text="Edited Image", 
-            font=("Arial", 14, "bold"),
-            bg_color="gray20",
-            corner_radius=5
-        )
-        self.edited_label.place(x=10, y=10)  # Position absolutely
-        # Ensure labels are visible and not obstructed
-        self.edited_label.lift()
+        # Matplotlib figures and canvases
+        self.figure_original = plt.Figure(figsize=(5, 5), dpi=100)
+        self.figure_original.patch.set_facecolor("#333")  # Set figure background color
 
-        self.original_label = ctk.CTkLabel(
-            self.original_relative, 
-            text="Original Image", 
-            font=("Arial", 14, "bold"),
-            bg_color="gray20",
-            corner_radius=5
-        )
-        self.original_label.place(x=10, y=10)  # Position absolutely
-        # Ensure labels are visible and not obstructed
-        self.original_label.lift()
+        self.figure_edited = plt.Figure(figsize=(5, 5), dpi=100)
+        self.figure_edited.patch.set_facecolor("#333")  # Set figure background color
 
-        # Image labels
-        self.image_label = ctk.CTkLabel(self.edited_relative, text="")
-        self.image_label.pack(expand=True, fill="both")
-        
-        self.image_label_original = ctk.CTkLabel(self.original_relative, text="")
-        self.image_label_original.pack(expand=True, fill="both")
+        self.canvas_original = FigureCanvasTkAgg(self.figure_original, self.original_container)
+        self.canvas_original.get_tk_widget().configure(bg="#333")  # Set background color
+        self.canvas_original.get_tk_widget().pack(expand=True, fill="both")
+
+        self.canvas_edited = FigureCanvasTkAgg(self.figure_edited, self.edited_container)
+        self.canvas_edited.get_tk_widget().configure(bg="#333")  # Set background color
+        self.canvas_edited.get_tk_widget().pack(expand=True, fill="both")
 
     def on_window_resize(self, event):
         if hasattr(self, 'image_label') and hasattr(self, 'image_label_original'):
-            if self.image_label.image is not None and self.image_label_original.image is not None:
+            if self.image_processor.cv_image is not None and self.image_processor.original_image is not None:
                 self.update_display(self.image_processor.cv_image, self.image_processor.original_image)
 
     def update_display(self, cv_image, original_image):
         if cv_image is None or original_image is None:
             return
 
-        # Get current container sizes
-        original_width = self.original_relative.winfo_width() - 20  # Account for padding
-        edited_width = self.edited_relative.winfo_width() - 20  # Account for padding
-        
-        # Calculate height based on width to maintain aspect ratio
-        height = int(min(original_width, edited_width))
+        # Clear previous plots
+        self.figure_original.clf()
+        self.figure_edited.clf()
 
-        # Modified image
-        mod_img = cv2.cvtColor(cv_image.copy(), cv2.COLOR_BGR2RGB)
-        mod_img = imutils.resize(mod_img, width=edited_width)
-        mod_img_pil = Image.fromarray(mod_img)
-        mod_img_ctk = ctk.CTkImage(mod_img_pil, size=(edited_width, height))
-        self.image_label.configure(image=mod_img_ctk)
-        self.image_label.image = mod_img_ctk
-
-        # Original image
+        # Plot original image
         if self.show_original:
-            orig_img = cv2.cvtColor(original_image.copy(), cv2.COLOR_BGR2RGB)
-            orig_img = imutils.resize(orig_img, width=original_width)
-            orig_img_pil = Image.fromarray(orig_img)
-            orig_img_ctk = ctk.CTkImage(orig_img_pil, size=(original_width, height))
-            self.image_label_original.configure(image=orig_img_ctk)
-            self.image_label_original.image = orig_img_ctk
-            # When showing original, edited image takes half width
-            self.edited_container.pack(side="left", expand=True, fill="both", padx=5, pady=5)
-        else:
-            # When hiding original, edited image takes full width but maintains aspect ratio
-            self.edited_container.pack(side="left", expand=True, fill="both", padx=5, pady=5)
-            # Center the edited image
-            self.image_label.pack(expand=True, fill="both", anchor="center")
-            # Clear original image
-            self.image_label_original.configure(image="")
-            self.image_label_original.image = None
+            ax_original = self.figure_original.add_subplot(111, facecolor="#333")  # Set axes background color
+            ax_original.imshow(cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB))
+            ax_original.axis('off')
+            self.canvas_original.draw()
+
+        # Plot edited image
+        ax_edited = self.figure_edited.add_subplot(111, facecolor="#333")  # Set axes background color
+        ax_edited.imshow(cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB))
+        ax_edited.axis('off')
+        self.canvas_edited.draw()
 
     def toggle_original(self):
         self.show_original = not self.show_original
@@ -177,10 +145,10 @@ class ImageEditorUI:
 
     def reset_interface(self):
         # Clear image displays
-        self.image_label.configure(image="", text="")
-        self.image_label.image = None
-        self.image_label_original.configure(image="", text="")
-        self.image_label_original.image = None
+        self.figure_original.clf()
+        self.figure_edited.clf()
+        self.canvas_original.draw()
+        self.canvas_edited.draw()
         
         # Reset window title
         self.update_window_title(None)
