@@ -1,8 +1,6 @@
 import customtkinter as ctk
 import cv2
-import imutils
 from tkinter import Menu
-from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
