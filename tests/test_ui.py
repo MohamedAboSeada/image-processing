@@ -6,7 +6,6 @@ import customtkinter as ctk
 
 # Add the parent directory to the path so we can import the UI
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from ui import ImageEditorUI
 from main import ImageEditorApp
 
 class TestUI(unittest.TestCase):
