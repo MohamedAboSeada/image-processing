@@ -267,21 +267,169 @@ class ImageProcessor:
         cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
         cancel_button.pack(side="right", padx=5)
 
+    def color_conversion_window(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for color conversion
+        color_window = ctk.CTkToplevel(self.ui.root)
+        color_window.title("Color Conversion")
+        color_window.geometry("900x700")
+
+        # Create a title label
+        title_label = ctk.CTkLabel(color_window, text="Click on an image to apply the conversion", font=("Arial", 16, "bold"))
+        title_label.pack(pady=10)
+
+        # Create a frame for the image grid
+        grid_frame = ctk.CTkFrame(color_window)
+        grid_frame.pack(expand=True, fill="both", padx=10, pady=10)
+
+        # Configure grid layout (2x2)
+        grid_frame.columnconfigure(0, weight=1)
+        grid_frame.columnconfigure(1, weight=1)
+        grid_frame.rowconfigure(0, weight=1)
+        grid_frame.rowconfigure(1, weight=1)
+
+        # Create frames for each color mode
+        bgr_frame = ctk.CTkFrame(grid_frame)
+        bgr_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+        rgb_frame = ctk.CTkFrame(grid_frame)
+        rgb_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+
+        hsv_frame = ctk.CTkFrame(grid_frame)
+        hsv_frame.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+
+        gray_frame = ctk.CTkFrame(grid_frame)
+        gray_frame.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+
+        # Create labels for each color mode
+        bgr_label = ctk.CTkLabel(bgr_frame, text="Original (BGR)")
+        bgr_label.pack(pady=5)
+
+        rgb_label = ctk.CTkLabel(rgb_frame, text="RGB")
+        rgb_label.pack(pady=5)
+
+        hsv_label = ctk.CTkLabel(hsv_frame, text="HSV")
+        hsv_label.pack(pady=5)
+
+        gray_label = ctk.CTkLabel(gray_frame, text="Grayscale")
+        gray_label.pack(pady=5)
+
+        # Create image canvases
+        bgr_canvas = ctk.CTkLabel(bgr_frame, text="")
+        bgr_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        rgb_canvas = ctk.CTkLabel(rgb_frame, text="")
+        rgb_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        hsv_canvas = ctk.CTkLabel(hsv_frame, text="")
+        hsv_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        gray_canvas = ctk.CTkLabel(gray_frame, text="")
+        gray_canvas.pack(expand=True, fill="both", padx=5, pady=5)
+
+        # Prepare the preview images
+        # Original (BGR)
+        bgr_preview = self.cv_image.copy()
+        bgr_preview = cv2.resize(bgr_preview, (300, 200))
+        # For display purposes, we need to convert BGR to RGB for PIL
+        bgr_preview_rgb = cv2.cvtColor(bgr_preview, cv2.COLOR_BGR2RGB)
+        bgr_preview_pil = Image.fromarray(bgr_preview_rgb)
+        bgr_preview_tk = ImageTk.PhotoImage(bgr_preview_pil)
+        bgr_canvas.configure(image=bgr_preview_tk)
+        bgr_canvas.image = bgr_preview_tk
+
+        # RGB
+        # Create a true RGB image by swapping the channels
+        rgb_preview = self.cv_image.copy()
+        # Swap B and R channels to convert BGR to RGB
+        rgb_preview = rgb_preview[:, :, ::-1]
+        rgb_preview = cv2.resize(rgb_preview, (300, 200))
+        # For display, we need RGB format which we already have
+        rgb_preview_rgb = cv2.cvtColor(rgb_preview, cv2.COLOR_BGR2RGB)
+        rgb_preview_pil = Image.fromarray(rgb_preview_rgb)
+        rgb_preview_tk = ImageTk.PhotoImage(rgb_preview_pil)
+        rgb_canvas.configure(image=rgb_preview_tk)
+        rgb_canvas.image = rgb_preview_tk
+
+        # HSV
+        hsv_preview = cv2.cvtColor(self.cv_image.copy(), cv2.COLOR_BGR2HSV)
+        # Enhance the HSV visualization to make it more distinct
+        # Normalize H to 0-255 for better visualization
+        h, s, v = cv2.split(hsv_preview)
+        h_normalized = cv2.normalize(h, None, 0, 255, cv2.NORM_MINMAX)
+        s_normalized = cv2.normalize(s, None, 0, 255, cv2.NORM_MINMAX)
+        v_normalized = cv2.normalize(v, None, 0, 255, cv2.NORM_MINMAX)
+
+        # Create a false-color HSV visualization
+        hsv_display = cv2.merge([h_normalized, s_normalized, v_normalized])
+        hsv_display = cv2.resize(hsv_display, (300, 200))
+        # Convert to RGB for display
+        hsv_display_rgb = cv2.cvtColor(hsv_display, cv2.COLOR_BGR2RGB)
+        hsv_preview_pil = Image.fromarray(hsv_display_rgb)
+        hsv_preview_tk = ImageTk.PhotoImage(hsv_preview_pil)
+        hsv_canvas.configure(image=hsv_preview_tk)
+        hsv_canvas.image = hsv_preview_tk
+
+        # Grayscale
+        gray_preview = cv2.cvtColor(self.cv_image.copy(), cv2.COLOR_BGR2GRAY)
+        # Resize before converting back to RGB for display
+        gray_preview = cv2.resize(gray_preview, (300, 200))
+        # Convert to RGB for display (this will be a true grayscale image)
+        gray_preview_display = cv2.cvtColor(gray_preview, cv2.COLOR_GRAY2RGB)
+        gray_preview_pil = Image.fromarray(gray_preview_display)
+        gray_preview_tk = ImageTk.PhotoImage(gray_preview_pil)
+        gray_canvas.configure(image=gray_preview_tk)
+        gray_canvas.image = gray_preview_tk
+
+        # Define click handlers for each canvas
+        def apply_bgr():
+            # Original is already in BGR, so no conversion needed
+            color_window.destroy()
+
+        def apply_rgb():
+            self.push_undo("Convert to RGB")
+            self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+            self.ui.update_display(self.cv_image, self.original_image)
+            color_window.destroy()
+
+        def apply_hsv():
+            self.push_undo("Convert to HSV")
+            self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
+            self.ui.update_display(self.cv_image, self.original_image)
+            color_window.destroy()
+
+        def apply_gray():
+            self.push_undo("Convert to Grayscale")
+            gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
+            self.cv_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+            self.ui.update_display(self.cv_image, self.original_image)
+            color_window.destroy()
+
+        # Bind click events to canvases
+        bgr_canvas.bind("<Button-1>", lambda e: apply_bgr())
+        rgb_canvas.bind("<Button-1>", lambda e: apply_rgb())
+        hsv_canvas.bind("<Button-1>", lambda e: apply_hsv())
+        gray_canvas.bind("<Button-1>", lambda e: apply_gray())
+
+        # Add cancel button at the bottom
+        button_frame = ctk.CTkFrame(color_window)
+        button_frame.pack(pady=10)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=color_window.destroy)
+        cancel_button.pack(padx=5)
+
+    # Keep these methods for backward compatibility but make them use the new window
     def convert_Rgb(self):
-        self.push_undo("Convert to RGB")
-        self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
-        self.ui.update_display(self.cv_image, self.original_image)
+        self.color_conversion_window()
 
     def convert_Hsv(self):
-        self.push_undo("Convert to HSV")
-        self.cv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
-        self.ui.update_display(self.cv_image, self.original_image)
+        self.color_conversion_window()
 
     def convert_Gray(self):
-        self.push_undo("Convert to Gray")
-        gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
-        self.cv_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-        self.ui.update_display(self.cv_image, self.original_image)
+        self.color_conversion_window()
 
     def split_channels(self):
         b, g, r = cv2.split(self.cv_image)
