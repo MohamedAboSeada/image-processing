@@ -14,7 +14,7 @@ class ImageEditorUI:
 
         self.create_widgets()
         self.setup_menus()
-        
+
         # Bind window resize event
         self.root.bind('<Configure>', self.on_window_resize)
 
@@ -38,8 +38,8 @@ class ImageEditorUI:
 
         # Toggle original button
         self.toggle_button = ctk.CTkButton(
-            self.frame_left, 
-            text="Hide Original", 
+            self.frame_left,
+            text="Hide Original",
             command=self.toggle_original,
             fg_color="#8B0000",  # Dark red when showing
             hover_color="#A52A2A"  # Lighter red on hover
@@ -50,7 +50,7 @@ class ImageEditorUI:
         self.history_listbox = ctk.CTkTextbox(self.frame_left, height=150, width=180)
         self.history_listbox.pack(pady=10)
         self.history_listbox.insert("end", "History:\n")
-        
+
         # Menu buttons
         self.edit_menu_button = ctk.CTkButton(self.frame_left, text="Edit", command=self.show_edit_menu)
         self.edit_menu_button.pack(pady=5)
@@ -61,23 +61,23 @@ class ImageEditorUI:
         # Main image container
         self.image_frame = ctk.CTkFrame(self.root)
         self.image_frame.pack(side="right", expand=True, fill="both", padx=10, pady=10)
-        
+
         # Create container for edited image (left)
         self.edited_container = ctk.CTkFrame(self.image_frame)
         self.edited_container.pack(side="left", expand=True, fill="both", padx=5, pady=5)
-        
+
         # Caption for edited image
         self.edited_caption = ctk.CTkLabel(self.edited_container, text="Edited", font=("Arial", 12))
         self.edited_caption.pack(side="bottom", pady=5)
-        
+
         # Create container for original image (right)
         self.original_container = ctk.CTkFrame(self.image_frame)
         self.original_container.pack(side="right", expand=True, fill="both", padx=5, pady=5)
-        
+
         # Caption for original image
         self.original_caption = ctk.CTkLabel(self.original_container, text="Original", font=("Arial", 12))
         self.original_caption.pack(side="bottom", pady=5)
-        
+
         # Matplotlib figures and canvases
         self.figure_original = plt.Figure(figsize=(5, 5), dpi=100)
         self.figure_original.patch.set_facecolor("#333")  # Set figure background color
@@ -148,14 +148,14 @@ class ImageEditorUI:
         self.figure_edited.clf()
         self.canvas_original.draw()
         self.canvas_edited.draw()
-        
+
         # Reset window title
         self.update_window_title(None)
-        
+
         # Clear history
         self.history_listbox.delete("1.0", "end")
         self.history_listbox.insert("end", "History:\n")
-        
+
         # Show both containers
         self.show_original = True
         self.original_container.pack(side="right", expand=True, fill="both", padx=5, pady=5)
@@ -177,10 +177,8 @@ class ImageEditorUI:
         self.edit_menu.add_command(label="Split Channels", command=self.image_processor.split_channels)
         self.edit_menu.add_command(label="Normalize", command=self.image_processor.normalize_image)
         self.edit_menu.add_command(label="Histogram", command=self.image_processor.show_histogram)
-        self.edit_menu.add_command(label="Equلalize Histogram", command=self.image_processor.equalize_histogram)
-        self.edit_menu.add_command(label="Image Addition", command=self.image_processor.image_addition)
-        self.edit_menu.add_command(label="Weighted Addition", command=self.image_processor.weighted_addition)
-        self.edit_menu.add_command(label="Subtraction", command=self.image_processor.image_subtraction)
+        self.edit_menu.add_command(label="Equalize Histogram", command=self.image_processor.equalize_histogram)
+        self.edit_menu.add_command(label="Double Exposure", command=self.image_processor.double_exposure_window)
 
         # Filter menu
         self.filter_menu = Menu(self.root, tearoff=0)

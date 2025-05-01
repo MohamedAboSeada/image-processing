@@ -29,14 +29,14 @@ class ImageProcessor:
             self.ui.update_display(self.cv_image, self.original_image)
             image_name = os.path.basename(path)
             self.ui.update_window_title(image_name)
-            
+
     def save_image(self):
         if self.cv_image is not None:
-            path = filedialog.asksaveasfilename(defaultextension=".png", 
+            path = filedialog.asksaveasfilename(defaultextension=".png",
                                               filetypes=[("PNG Files", "*.png"), ("JPEG Files", "*.jpg")])
             if path:
                 cv2.imwrite(path, self.cv_image)
-                
+
     def undo(self):
         if self.undo_stack:
             self.redo_stack.append(self.cv_image.copy())  # Save current state to redo stack
@@ -224,7 +224,7 @@ class ImageProcessor:
         self.push_undo("Normalize")
         self.cv_image = cv2.normalize(self.cv_image, None, 0, 255, cv2.NORM_MINMAX)
         self.ui.update_display(self.cv_image, self.original_image)
-        
+
     def show_histogram(self):
         colors = ('b', 'g', 'r')
         for i, col in enumerate(colors):
@@ -320,7 +320,7 @@ class ImageProcessor:
         self.push_undo("Applied Uniform Noise")
         self.cv_image = noisy
         self.ui.update_display(self.cv_image, self.original_image)
-        
+
     def apply_averaging_filter(self):
         self.push_undo("Averaging Filter")
         kernel = np.ones((5, 5), np.float32) / 25
@@ -512,6 +512,150 @@ class ImageProcessor:
 
         button_frame = ctk.CTkFrame(flip_window)
         button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
+
+    def double_exposure_window(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for double exposure
+        double_exposure_window = ctk.CTkToplevel(self.ui.root)
+        double_exposure_window.title("Double Exposure Effect")
+        double_exposure_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(double_exposure_window, text="")
+        canvas.pack(expand=True, fill="both")
+
+        # Variable to store the second image
+        self.second_image = None
+
+        # Function to upload second image
+        def upload_second_image():
+            path = filedialog.askopenfilename()
+            if path:
+                second_img = cv2.imread(path)
+                if second_img is not None:
+                    # Resize second image to match dimensions of the first image
+                    self.second_image = cv2.resize(second_img, (self.cv_image.shape[1], self.cv_image.shape[0]))
+                    # Show mode selection after image is uploaded
+                    modes_frame.pack(pady=10)
+                    # Update preview with default mode
+                    update_preview()
+                else:
+                    messagebox.showerror("Error", "Could not load the image.")
+
+        # Upload button
+        upload_button = ctk.CTkButton(double_exposure_window, text="Upload Second Image", command=upload_second_image)
+        upload_button.pack(pady=20)
+
+        # Mode selection frame (initially hidden)
+        modes_frame = ctk.CTkFrame(double_exposure_window)
+
+        # Mode variable
+        mode_var = ctk.StringVar(value="add")
+
+        # Alpha values frame for weighted mode (initially hidden)
+        alpha_frame = ctk.CTkFrame(double_exposure_window)
+
+        # Alpha entry fields
+        alpha_label1 = ctk.CTkLabel(alpha_frame, text="Alpha for First Image:")
+        alpha_label1.pack(side="left", padx=5)
+        alpha_entry1 = ctk.CTkEntry(alpha_frame, width=60)
+        alpha_entry1.insert(0, "0.5")
+        alpha_entry1.pack(side="left", padx=5)
+
+        alpha_label2 = ctk.CTkLabel(alpha_frame, text="Alpha for Second Image:")
+        alpha_label2.pack(side="left", padx=5)
+        alpha_entry2 = ctk.CTkEntry(alpha_frame, width=60)
+        alpha_entry2.insert(0, "0.5")
+        alpha_entry2.pack(side="left", padx=5)
+
+        # Apply button for alpha values
+        apply_alpha_button = ctk.CTkButton(alpha_frame, text="Apply", width=60, command=lambda: update_preview())
+        apply_alpha_button.pack(side="left", padx=10)
+
+        # Function to update preview based on selected mode
+        def update_preview():
+            if self.second_image is None:
+                return
+
+            mode = mode_var.get()
+            if mode == "add":
+                preview_image = cv2.add(self.cv_image, self.second_image)
+            elif mode == "weighted":
+                try:
+                    alpha1 = float(alpha_entry1.get())
+                    alpha2 = float(alpha_entry2.get())
+                    preview_image = cv2.addWeighted(self.cv_image, alpha1, self.second_image, alpha2, 0)
+                except ValueError:
+                    messagebox.showerror("Invalid Input", "Please enter valid alpha values.")
+                    return
+            elif mode == "subtract":
+                preview_image = cv2.subtract(self.cv_image, self.second_image)
+
+            preview_image = cv2.cvtColor(preview_image, cv2.COLOR_BGR2RGB)
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        def on_mode_change():
+            if mode_var.get() == "weighted":
+                alpha_frame.pack(pady=10)
+                double_exposure_window.geometry("900x650")  # Increase window size
+            else:
+                alpha_frame.pack_forget()
+                double_exposure_window.geometry("800x600")  # Reset window size
+            update_preview()
+
+        modes = [
+            ("Add Two Images", "add"),
+            ("Add Weighted", "weighted"),
+            ("Subtract", "subtract")
+        ]
+
+        for text, value in modes:
+            radio = ctk.CTkRadioButton(modes_frame, text=text, variable=mode_var, value=value, command=on_mode_change)
+            radio.pack(anchor="w", padx=10, pady=5)
+
+        # Confirm and Cancel buttons
+        def confirm():
+            if self.second_image is None:
+                messagebox.showwarning("No Second Image", "Please upload a second image first.")
+                return
+
+            mode = mode_var.get()
+            self.push_undo("Double Exposure")
+
+            if mode == "add":
+                self.cv_image = cv2.add(self.cv_image, self.second_image)
+            elif mode == "weighted":
+                try:
+                    alpha1 = float(alpha_entry1.get())
+                    alpha2 = float(alpha_entry2.get())
+                    self.cv_image = cv2.addWeighted(self.cv_image, alpha1, self.second_image, alpha2, 0)
+                except ValueError:
+                    messagebox.showerror("Invalid Input", "Please enter valid alpha values.")
+                    return
+            elif mode == "subtract":
+                self.cv_image = cv2.subtract(self.cv_image, self.second_image)
+
+            self.ui.update_display(self.cv_image, self.original_image)
+            double_exposure_window.destroy()
+
+        def cancel():
+            double_exposure_window.destroy()
+
+        button_frame = ctk.CTkFrame(double_exposure_window)
+        button_frame.pack(side="bottom", pady=10)
 
         confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
         confirm_button.pack(side="left", padx=5)
