@@ -29,14 +29,14 @@ class ImageProcessor:
             self.ui.update_display(self.cv_image, self.original_image)
             image_name = os.path.basename(path)
             self.ui.update_window_title(image_name)
-            
+
     def save_image(self):
         if self.cv_image is not None:
-            path = filedialog.asksaveasfilename(defaultextension=".png", 
+            path = filedialog.asksaveasfilename(defaultextension=".png",
                                               filetypes=[("PNG Files", "*.png"), ("JPEG Files", "*.jpg")])
             if path:
                 cv2.imwrite(path, self.cv_image)
-                
+
     def undo(self):
         if self.undo_stack:
             self.redo_stack.append(self.cv_image.copy())  # Save current state to redo stack
@@ -224,7 +224,7 @@ class ImageProcessor:
         self.push_undo("Normalize")
         self.cv_image = cv2.normalize(self.cv_image, None, 0, 255, cv2.NORM_MINMAX)
         self.ui.update_display(self.cv_image, self.original_image)
-        
+
     def show_histogram(self):
         colors = ('b', 'g', 'r')
         for i, col in enumerate(colors):
@@ -310,9 +310,71 @@ class ImageProcessor:
         self.ui.update_display(self.cv_image, self.original_image)
 
     def apply_median_filter(self):
-        self.push_undo("Median Filter")
-        self.cv_image = cv2.medianBlur(self.cv_image, 5)
-        self.ui.update_display(self.cv_image, self.original_image)
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for median filter control
+        median_window = ctk.CTkToplevel(self.ui.root)
+        median_window.title("Median Filter Control")
+        median_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(median_window, text="")
+        canvas.pack(expand=True, fill="both")
+
+        # Create a slider for kernel size adjustment
+        kernel_frame = ctk.CTkFrame(median_window)
+        kernel_frame.pack(pady=10)
+
+        kernel_label = ctk.CTkLabel(kernel_frame, text="Kernel Size:")
+        kernel_label.pack(side="left", padx=5)
+
+        # Kernel size must be odd
+        kernel_sizes = [3, 5, 7, 9, 11, 13, 15]
+        kernel_var = ctk.StringVar(value="5")
+
+        kernel_dropdown = ctk.CTkOptionMenu(
+            kernel_frame,
+            values=[str(k) for k in kernel_sizes],
+            variable=kernel_var
+        )
+        kernel_dropdown.pack(side="left", padx=5)
+
+        # Function to update the preview
+        def update_preview(*args):
+            kernel_size = int(kernel_var.get())
+            preview_image = self.cv_image.copy()
+            preview_image = cv2.medianBlur(preview_image, kernel_size)
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = cv2.cvtColor(preview_image, cv2.COLOR_BGR2RGB)
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        kernel_var.trace_add("write", update_preview)
+        update_preview()  # Initial preview
+
+        # Confirm and Cancel buttons
+        def confirm():
+            kernel_size = int(kernel_var.get())
+            self.push_undo("Median Filter")
+            self.cv_image = cv2.medianBlur(self.cv_image, kernel_size)
+            self.ui.update_display(self.cv_image, self.original_image)
+            median_window.destroy()
+
+        def cancel():
+            median_window.destroy()
+
+        button_frame = ctk.CTkFrame(median_window)
+        button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
 
     def apply_max_filter(self):
         self.push_undo("Max Filter")
