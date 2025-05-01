@@ -15,6 +15,10 @@ class ImageEditorUI:
         self.create_widgets()
         self.setup_menus()
 
+        # Bind keyboard shortcuts
+        self.root.bind('<Control-z>', lambda event: self.image_processor.undo())
+        self.root.bind('<Control-y>', lambda event: self.image_processor.redo())
+
         # Bind window resize event
         self.root.bind('<Configure>', self.on_window_resize)
 
