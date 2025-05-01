@@ -131,6 +131,7 @@ class ImageProcessor:
         rotate_window = ctk.CTkToplevel(self.ui.root)
         rotate_window.title("Rotate Image")
         rotate_window.geometry("800x600")
+        rotate_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(rotate_window, text="")
@@ -229,6 +230,7 @@ class ImageProcessor:
         brightness_window = ctk.CTkToplevel(self.ui.root)
         brightness_window.title("Brightness Control")
         brightness_window.geometry("800x600")
+        brightness_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(brightness_window, text="")  # Remove default "ctk label" text
@@ -285,6 +287,7 @@ class ImageProcessor:
         color_window = ctk.CTkToplevel(self.ui.root)
         color_window.title("Color Conversion")
         color_window.geometry("900x700")
+        color_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a title label
         title_label = ctk.CTkLabel(color_window, text="Click on an image to apply the conversion", font=("Arial", 16, "bold"))
@@ -593,6 +596,7 @@ class ImageProcessor:
         median_window = ctk.CTkToplevel(self.ui.root)
         median_window.title("Median Filter Control")
         median_window.geometry("800x600")
+        median_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(median_window, text="")
@@ -654,6 +658,7 @@ class ImageProcessor:
         max_window = ctk.CTkToplevel(self.ui.root)
         max_window.title("Max Filter Control")
         max_window.geometry("800x600")
+        max_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(max_window, text="")
@@ -714,6 +719,7 @@ class ImageProcessor:
         min_window = ctk.CTkToplevel(self.ui.root)
         min_window.title("Min Filter Control")
         min_window.geometry("800x600")
+        min_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(min_window, text="")
@@ -773,6 +779,7 @@ class ImageProcessor:
         compare_window = ctk.CTkToplevel(self.ui.root)
         compare_window.title("Compare Original vs Edited")
         compare_window.geometry("800x600")
+        compare_window.attributes('-topmost', True)  # Make window stay on top
 
         canvas = ctk.CTkLabel(compare_window)
         canvas.pack(expand=True, fill="both")
@@ -805,6 +812,7 @@ class ImageProcessor:
         threshold_window = ctk.CTkToplevel(self.ui.root)
         threshold_window.title("Threshold Control")
         threshold_window.geometry("800x600")
+        threshold_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(threshold_window, text="")  # Remove default "ctk label" text
@@ -861,6 +869,7 @@ class ImageProcessor:
         flip_window = ctk.CTkToplevel(self.ui.root)
         flip_window.title("Flip Adjustment")
         flip_window.geometry("800x600")
+        flip_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(flip_window, text="")  # Remove default "ctk label" text
@@ -935,6 +944,7 @@ class ImageProcessor:
         double_exposure_window = ctk.CTkToplevel(self.ui.root)
         double_exposure_window.title("Double Exposure Effect")
         double_exposure_window.geometry("800x600")
+        double_exposure_window.attributes('-topmost', True)  # Make window stay on top
 
         # Create a preview canvas
         canvas = ctk.CTkLabel(double_exposure_window, text="")
