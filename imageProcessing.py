@@ -94,7 +94,7 @@ class ImageProcessor:
                 x, y, w, h = map(int, values.split(","))
                 self.push_undo('Crop')
                 self.cv_image = self.cv_image[y:y+h, x:x+w]
-                self.update_display()
+                self.ui.update_display(self.cv_image, self.original_image)  # Fixed method call
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter four valid integers separated by commas.")
 
@@ -300,4 +300,4 @@ class ImageProcessor:
                 self.original_image = None
                 self.undo_stack.clear()
                 self.history_list.clear()
-                self.ui.reset_interface() 
+                self.ui.reset_interface()
