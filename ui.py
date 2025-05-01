@@ -62,6 +62,9 @@ class ImageEditorUI:
         self.filter_menu_button = ctk.CTkButton(self.frame_left, text="Filter", command=self.show_filter_menu)
         self.filter_menu_button.pack(pady=5)
 
+        self.matplot_menu_button = ctk.CTkButton(self.frame_left, text="Matplot", command=self.show_matplot_menu)
+        self.matplot_menu_button.pack(pady=5)
+
         # Main image container
         self.image_frame = ctk.CTkFrame(self.root)
         self.image_frame.pack(side="right", expand=True, fill="both", padx=10, pady=10)
@@ -175,10 +178,7 @@ class ImageEditorUI:
         self.edit_menu.add_command(label="Brightness", command=self.image_processor.adjust_brightness_window)
         self.edit_menu.add_command(label="Color Conversion", command=self.image_processor.color_conversion_window)
         self.edit_menu.add_command(label="threshold", command=self.image_processor.adjust_threshold)
-        self.edit_menu.add_command(label="Split Channels", command=self.image_processor.split_channels)
         self.edit_menu.add_command(label="Normalize", command=self.image_processor.normalize_image)
-        self.edit_menu.add_command(label="Histogram", command=self.image_processor.show_histogram)
-        self.edit_menu.add_command(label="Equalize Histogram", command=self.image_processor.equalize_histogram)
         self.edit_menu.add_command(label="Double Exposure", command=self.image_processor.double_exposure_window)
 
         # Filter menu
@@ -187,12 +187,18 @@ class ImageEditorUI:
         self.filter_menu.add_command(label="Speckle Noise", command=self.image_processor.apply_speckle_noise)
         self.filter_menu.add_command(label="Poisson Noise", command=self.image_processor.apply_poisson_noise)
         self.filter_menu.add_command(label="Uniform Noise", command=self.image_processor.apply_uniform_noise)
+        self.filter_menu.add_command(label="Equalize Histogram", command=self.image_processor.equalize_histogram)
         self.filter_menu.add_command(label="Averaging Filter", command=self.image_processor.apply_averaging_filter)
         self.filter_menu.add_command(label="Weighted Averaging Filter", command=self.image_processor.apply_weighted_averaging_filter)
         self.filter_menu.add_command(label="Gaussian Filter", command=self.image_processor.apply_gaussian_filter)
         self.filter_menu.add_command(label="Median Filter", command=self.image_processor.apply_median_filter)
         self.filter_menu.add_command(label="Max Filter", command=self.image_processor.apply_max_filter)
         self.filter_menu.add_command(label="Min Filter", command=self.image_processor.apply_min_filter)
+
+        # Matplot menu
+        self.matplot_menu = Menu(self.root, tearoff=0)
+        self.matplot_menu.add_command(label="Split Channels", command=self.image_processor.split_channels)
+        self.matplot_menu.add_command(label="Histogram", command=self.image_processor.show_histogram)
 
     def show_edit_menu(self):
         x = self.edit_menu_button.winfo_rootx()
@@ -203,3 +209,8 @@ class ImageEditorUI:
         x = self.filter_menu_button.winfo_rootx()
         y = self.filter_menu_button.winfo_rooty() + self.filter_menu_button.winfo_height()
         self.filter_menu.tk_popup(x, y)
+
+    def show_matplot_menu(self):
+        x = self.matplot_menu_button.winfo_rootx()
+        y = self.matplot_menu_button.winfo_rooty() + self.matplot_menu_button.winfo_height()
+        self.matplot_menu.tk_popup(x, y)

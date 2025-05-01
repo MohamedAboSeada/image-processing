@@ -12,6 +12,7 @@ class ImageProcessor:
         self.ui = ui
         self.cv_image = None
         self.original_image = None
+        self.original_extension = ".png"  # Default extension
         self.undo_stack = []
         self.redo_stack = []  # Add redo stack
         self.history_list = []
@@ -30,13 +31,90 @@ class ImageProcessor:
             self.ui.update_display(self.cv_image, self.original_image)
             image_name = os.path.basename(path)
             self.ui.update_window_title(image_name)
+            # Store the original file extension
+            _, self.original_extension = os.path.splitext(path)
+            if not self.original_extension:
+                self.original_extension = ".png"  # Default to PNG if no extension
 
     def save_image(self):
         if self.cv_image is not None:
-            path = filedialog.asksaveasfilename(defaultextension=".png",
-                                              filetypes=[("PNG Files", "*.png"), ("JPEG Files", "*.jpg")])
+            # Use the original file extension as the default
+            filetypes = [
+                ("Original Format", f"*{self.original_extension}"),
+                ("PNG Files", "*.png"),
+                ("JPEG Files", "*.jpg"),
+                ("All Files", "*.*")
+            ]
+
+            path = filedialog.asksaveasfilename(
+                defaultextension=self.original_extension,
+                filetypes=filetypes
+            )
+
             if path:
-                cv2.imwrite(path, self.cv_image)
+                try:
+                    # Convert path to absolute path and normalize it
+                    abs_path = os.path.abspath(path)
+
+                    # Make sure the directory exists
+                    directory = os.path.dirname(abs_path)
+                    if not os.path.exists(directory):
+                        os.makedirs(directory, exist_ok=True)
+
+                    # Get the file extension from the path
+                    _, file_extension = os.path.splitext(abs_path)
+                    if not file_extension:
+                        # If no extension provided, use the original extension
+                        abs_path += self.original_extension
+                        file_extension = self.original_extension
+
+                    # For PNG format
+                    if file_extension.lower() == '.png':
+                        # Convert image to RGB if it's not already
+                        if len(self.cv_image.shape) == 3 and self.cv_image.shape[2] == 3:
+                            # Save using PIL/Pillow which handles paths with special characters better
+                            img_rgb = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+                            pil_img = Image.fromarray(img_rgb)
+                            pil_img.save(abs_path)
+                            messagebox.showinfo("Success", f"Image saved successfully to:\n{abs_path}")
+                        else:
+                            # For grayscale or other formats
+                            result = cv2.imwrite(abs_path, self.cv_image)
+                            if result:
+                                messagebox.showinfo("Success", f"Image saved successfully to:\n{abs_path}")
+                            else:
+                                messagebox.showerror("Error", f"Failed to save image to:\n{abs_path}")
+                    # For JPEG format
+                    elif file_extension.lower() in ('.jpg', '.jpeg'):
+                        # Save using PIL/Pillow
+                        img_rgb = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+                        pil_img = Image.fromarray(img_rgb)
+                        pil_img.save(abs_path, quality=95)  # High quality JPEG
+                        messagebox.showinfo("Success", f"Image saved successfully to:\n{abs_path}")
+                    else:
+                        # For other formats, use PIL if it's a color image
+                        if len(self.cv_image.shape) == 3 and self.cv_image.shape[2] == 3:
+                            img_rgb = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+                            pil_img = Image.fromarray(img_rgb)
+                            try:
+                                pil_img.save(abs_path)
+                                messagebox.showinfo("Success", f"Image saved successfully to:\n{abs_path}")
+                            except Exception:
+                                # Fallback to OpenCV if PIL fails
+                                result = cv2.imwrite(abs_path, self.cv_image)
+                                if result:
+                                    messagebox.showinfo("Success", f"Image saved successfully to:\n{abs_path}")
+                                else:
+                                    messagebox.showerror("Error", f"Failed to save image to:\n{abs_path}")
+                        else:
+                            # Fallback to OpenCV for grayscale or other formats
+                            result = cv2.imwrite(abs_path, self.cv_image)
+                            if result:
+                                messagebox.showinfo("Success", f"Image saved successfully to:\n{abs_path}")
+                            else:
+                                messagebox.showerror("Error", f"Failed to save image to:\n{abs_path}")
+                except Exception as e:
+                    messagebox.showerror("Error", f"An error occurred while saving the image:\n{str(e)}")
 
     def undo(self):
         if self.undo_stack:
