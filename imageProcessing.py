@@ -606,19 +606,13 @@ class ImageProcessor:
         kernel_label.pack(side="left", padx=5)
 
         # Kernel size must be odd
-        kernel_sizes = [3, 5, 7, 9, 11, 13, 15]
-        kernel_var = ctk.StringVar(value="5")
-
-        kernel_dropdown = ctk.CTkOptionMenu(
-            kernel_frame,
-            values=[str(k) for k in kernel_sizes],
-            variable=kernel_var
-        )
-        kernel_dropdown.pack(side="left", padx=5)
+        slider = ctk.CTkSlider(kernel_frame, from_=1, to=15, number_of_steps=7, orientation="horizontal")
+        slider.set(5)  # Default kernel size
+        slider.pack(side="left", padx=5)
 
         # Function to update the preview
-        def update_preview(*args):
-            kernel_size = int(kernel_var.get())
+        def update_preview(value):
+            kernel_size = int(value) | 1  # Ensure kernel size is odd
             preview_image = self.cv_image.copy()
             preview_image = cv2.medianBlur(preview_image, kernel_size)
             preview_image = cv2.resize(preview_image, (600, 400))
@@ -628,12 +622,12 @@ class ImageProcessor:
             canvas.configure(image=preview_image)
             canvas.image = preview_image
 
-        kernel_var.trace_add("write", update_preview)
-        update_preview()  # Initial preview
+        slider.configure(command=update_preview)
+        update_preview(slider.get())  # Initial preview
 
         # Confirm and Cancel buttons
         def confirm():
-            kernel_size = int(kernel_var.get())
+            kernel_size = int(slider.get()) | 1  # Ensure kernel size is odd
             self.push_undo("Median Filter")
             self.cv_image = cv2.medianBlur(self.cv_image, kernel_size)
             self.ui.update_display(self.cv_image, self.original_image)
@@ -652,14 +646,124 @@ class ImageProcessor:
         cancel_button.pack(side="right", padx=5)
 
     def apply_max_filter(self):
-        self.push_undo("Max Filter")
-        self.cv_image = cv2.dilate(self.cv_image, np.ones((5,5), np.uint8))
-        self.ui.update_display(self.cv_image, self.original_image)
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for max filter control
+        max_window = ctk.CTkToplevel(self.ui.root)
+        max_window.title("Max Filter Control")
+        max_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(max_window, text="")
+        canvas.pack(expand=True, fill="both")
+
+        # Create a slider for kernel size adjustment
+        kernel_frame = ctk.CTkFrame(max_window)
+        kernel_frame.pack(pady=10)
+
+        kernel_label = ctk.CTkLabel(kernel_frame, text="Kernel Size:")
+        kernel_label.pack(side="left", padx=5)
+
+        slider = ctk.CTkSlider(kernel_frame, from_=1, to=15, number_of_steps=7, orientation="horizontal")
+        slider.set(5)  # Default kernel size
+        slider.pack(side="left", padx=5)
+
+        # Function to update the preview
+        def update_preview(value):
+            kernel_size = int(value) | 1  # Ensure kernel size is odd
+            preview_image = self.cv_image.copy()
+            preview_image = cv2.dilate(preview_image, np.ones((kernel_size, kernel_size), np.uint8))
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = cv2.cvtColor(preview_image, cv2.COLOR_BGR2RGB)
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        slider.configure(command=update_preview)
+        update_preview(slider.get())  # Initial preview
+
+        # Confirm and Cancel buttons
+        def confirm():
+            kernel_size = int(slider.get()) | 1  # Ensure kernel size is odd
+            self.push_undo("Max Filter")
+            self.cv_image = cv2.dilate(self.cv_image, np.ones((kernel_size, kernel_size), np.uint8))
+            self.ui.update_display(self.cv_image, self.original_image)
+            max_window.destroy()
+
+        def cancel():
+            max_window.destroy()
+
+        button_frame = ctk.CTkFrame(max_window)
+        button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
 
     def apply_min_filter(self):
-        self.push_undo("Min Filter")
-        self.cv_image = cv2.erode(self.cv_image, np.ones((5,5), np.uint8))
-        self.ui.update_display(self.cv_image, self.original_image)
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for min filter control
+        min_window = ctk.CTkToplevel(self.ui.root)
+        min_window.title("Min Filter Control")
+        min_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(min_window, text="")
+        canvas.pack(expand=True, fill="both")
+
+        # Create a slider for kernel size adjustment
+        kernel_frame = ctk.CTkFrame(min_window)
+        kernel_frame.pack(pady=10)
+
+        kernel_label = ctk.CTkLabel(kernel_frame, text="Kernel Size:")
+        kernel_label.pack(side="left", padx=5)
+
+        slider = ctk.CTkSlider(kernel_frame, from_=1, to=15, number_of_steps=7, orientation="horizontal")
+        slider.set(5)  # Default kernel size
+        slider.pack(side="left", padx=5)
+
+        # Function to update the preview
+        def update_preview(value):
+            kernel_size = int(value) | 1  # Ensure kernel size is odd
+            preview_image = self.cv_image.copy()
+            preview_image = cv2.erode(preview_image, np.ones((kernel_size, kernel_size), np.uint8))
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = cv2.cvtColor(preview_image, cv2.COLOR_BGR2RGB)
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        slider.configure(command=update_preview)
+        update_preview(slider.get())  # Initial preview
+
+        # Confirm and Cancel buttons
+        def confirm():
+            kernel_size = int(slider.get()) | 1  # Ensure kernel size is odd
+            self.push_undo("Min Filter")
+            self.cv_image = cv2.erode(self.cv_image, np.ones((kernel_size, kernel_size), np.uint8))
+            self.ui.update_display(self.cv_image, self.original_image)
+            min_window.destroy()
+
+        def cancel():
+            min_window.destroy()
+
+        button_frame = ctk.CTkFrame(min_window)
+        button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
 
     def interactive_compare(self):
         if self.cv_image is None or self.original_image is None:
