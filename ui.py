@@ -38,8 +38,8 @@ class ImageEditorUI:
             self.frame_left,
             text="Hide Original",
             command=self.toggle_original,
-            fg_color="#8B0000",  # Dark red when showing
-            hover_color="#A52A2A"  # Lighter red on hover
+            fg_color="green",  # Green when showing
+            hover_color="#228B22"  # Lighter green on hover
         )
         self.toggle_button.pack(pady=3)
 
@@ -118,7 +118,7 @@ class ImageEditorUI:
         self.show_original = not self.show_original
         if self.show_original:
             self.original_container.pack(side="right", expand=True, fill="both", padx=5, pady=5)
-            self.toggle_button.configure(text="Hide Original", fg_color="#8B0000", hover_color="#A52A2A")
+            self.toggle_button.configure(text="Hide Original", fg_color="green", hover_color="#228B22")
         else:
             self.original_container.pack_forget()
             self.toggle_button.configure(text="Show Original", fg_color="green", hover_color="#228B22")
@@ -154,7 +154,7 @@ class ImageEditorUI:
         # Show both containers
         self.show_original = True
         self.original_container.pack(side="right", expand=True, fill="both", padx=5, pady=5)
-        self.toggle_button.configure(text="Hide Original", fg_color="#8B0000", hover_color="#A52A2A")
+        self.toggle_button.configure(text="Hide Original", fg_color="green", hover_color="#228B22")
 
     def setup_menus(self):
         # Edit menu

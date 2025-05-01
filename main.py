@@ -21,12 +21,13 @@ from windows.double_exposure_window import DoubleExposureWindow
 from windows.compare_window import CompareWindow
 
 ctk.set_appearance_mode("Dark")
-ctk.set_default_color_theme("dark-blue")
+ctk.set_default_color_theme("green")
 
 class ImageEditorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Advanced Image Editor")
+        self.root.iconbitmap("assets/logo.ico")
 
         # Initialize image processor
         self.image_processor = ImageProcessor()
