@@ -126,6 +126,7 @@ class ImageProcessor:
             self.push_undo("Rotate without Crop")
             self.cv_image = imutils.rotate(self.cv_image, angle)
             self.ui.update_display(self.cv_image, self.original_image)
+
     def adjust_brightness_window(self):
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
@@ -137,7 +138,7 @@ class ImageProcessor:
         brightness_window.geometry("800x600")
 
         # Create a preview canvas
-        canvas = ctk.CTkLabel(brightness_window)
+        canvas = ctk.CTkLabel(brightness_window, text="")  # Remove default "ctk label" text
         canvas.pack(expand=True, fill="both")
 
         # Create a slider for brightness adjustment
@@ -365,7 +366,7 @@ class ImageProcessor:
         threshold_window.geometry("800x600")
 
         # Create a preview canvas
-        canvas = ctk.CTkLabel(threshold_window)
+        canvas = ctk.CTkLabel(threshold_window, text="")  # Remove default "ctk label" text
         canvas.pack(expand=True, fill="both")
 
         # Create a slider for threshold adjustment
