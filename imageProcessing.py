@@ -352,7 +352,7 @@ class ImageProcessor:
         self.push_undo("Max Filter")
         self.cv_image = cv2.dilate(self.cv_image, np.ones((5,5), np.uint8))
         self.ui.update_display(self.cv_image, self.original_image)
-
+    
     def apply_min_filter(self):
         self.push_undo("Min Filter")
         self.cv_image = cv2.erode(self.cv_image, np.ones((5,5), np.uint8))
