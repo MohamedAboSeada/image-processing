@@ -5,6 +5,7 @@ from tkinter import filedialog, simpledialog, messagebox
 import customtkinter as ctk
 import imutils
 import os
+from PIL import Image, ImageTk
 
 class ImageProcessor:
     def __init__(self, ui):
@@ -140,13 +141,6 @@ class ImageProcessor:
         self.push_undo("Convert to Gray")
         gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
         self.cv_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-        self.ui.update_display(self.cv_image, self.original_image)
-
-    def convert_Binary(self):
-        self.push_undo("Convert to Binary")
-        gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
-        _, binary = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
-        self.cv_image = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
         self.ui.update_display(self.cv_image, self.original_image)
 
     def split_channels(self):
@@ -304,6 +298,62 @@ class ImageProcessor:
 
         slider.configure(command=update_image)
         update_image(slider.get())
+
+    def adjust_threshold(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for threshold control
+        threshold_window = ctk.CTkToplevel(self.ui.root)
+        threshold_window.title("Threshold Control")
+        threshold_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(threshold_window)
+        canvas.pack(expand=True, fill="both")
+
+        # Create a slider for threshold adjustment
+        slider = ctk.CTkSlider(threshold_window, from_=0, to=255, number_of_steps=255, orientation="horizontal")
+        slider.set(127)  # Default threshold value
+        slider.pack(pady=10)
+
+        # Function to update the preview
+        def update_preview(value):
+            threshold_value = int(float(value))
+            gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
+            _, binary = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY)
+            preview_image = cv2.cvtColor(binary, cv2.COLOR_GRAY2RGB)
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        slider.configure(command=update_preview)
+        update_preview(slider.get())
+
+        # Confirm and Cancel buttons
+        def confirm():
+            threshold_value = int(slider.get())
+            self.push_undo("Adjust Threshold")
+            gray = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
+            _, binary = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY)
+            self.cv_image = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
+            self.ui.update_display(self.cv_image, self.original_image)
+            threshold_window.destroy()
+
+        def cancel():
+            threshold_window.destroy()
+
+        button_frame = ctk.CTkFrame(threshold_window)
+        button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
 
     def close_image(self):
         if self.cv_image is not None:
