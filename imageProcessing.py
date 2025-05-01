@@ -132,14 +132,62 @@ class ImageProcessor:
         self.cv_image = cv2.flip(self.cv_image, code)
         self.ui.update_display(self.cv_image, self.original_image)
 
-    def adjust_brightness(self):
-        factor = simpledialog.askfloat("Brightness", "Enter factor (e.g., 1.2)")
-        if factor:
+
+    def adjust_brightness_window(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        # Create a new window for brightness control
+        brightness_window = ctk.CTkToplevel(self.ui.root)
+        brightness_window.title("Brightness Control")
+        brightness_window.geometry("800x600")
+
+        # Create a preview canvas
+        canvas = ctk.CTkLabel(brightness_window)
+        canvas.pack(expand=True, fill="both")
+
+        # Create a slider for brightness adjustment
+        slider = ctk.CTkSlider(brightness_window, from_=0.1, to=3.0, number_of_steps=290, orientation="horizontal")
+        slider.set(1.0)  # Default brightness factor
+        slider.pack(pady=10)
+
+        # Function to update the preview
+        def update_preview(value):
+            factor = float(value)
+            hsv = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
+            hsv[:, :, 2] = np.clip(hsv[:, :, 2] * factor, 0, 255)
+            preview_image = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+            preview_image = cv2.resize(preview_image, (600, 400))
+            preview_image = Image.fromarray(preview_image)
+            preview_image = ImageTk.PhotoImage(preview_image)
+            canvas.configure(image=preview_image)
+            canvas.image = preview_image
+
+        slider.configure(command=update_preview)
+        update_preview(slider.get())
+
+        # Confirm and Cancel buttons
+        def confirm():
+            factor = float(slider.get())
             self.push_undo("Adjust Brightness")
             hsv = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
-            hsv[:,:,2] = np.clip(hsv[:,:,2] * factor, 0, 255)
+            hsv[:, :, 2] = np.clip(hsv[:, :, 2] * factor, 0, 255)
             self.cv_image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
             self.ui.update_display(self.cv_image, self.original_image)
+            brightness_window.destroy()
+
+        def cancel():
+            brightness_window.destroy()
+
+        button_frame = ctk.CTkFrame(brightness_window)
+        button_frame.pack(pady=10)
+
+        confirm_button = ctk.CTkButton(button_frame, text="Confirm", command=confirm)
+        confirm_button.pack(side="left", padx=5)
+
+        cancel_button = ctk.CTkButton(button_frame, text="Cancel", command=cancel)
+        cancel_button.pack(side="right", padx=5)
 
     def convert_Rgb(self):
         self.push_undo("Convert to RGB")

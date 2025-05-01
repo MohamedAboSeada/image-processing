@@ -171,7 +171,7 @@ class ImageEditorUI:
         self.edit_menu.add_command(label="Flip Horizontal", command=lambda: self.image_processor.flip_image(1))
         self.edit_menu.add_command(label="Flip Vertical", command=lambda: self.image_processor.flip_image(0))
         self.edit_menu.add_command(label="Flip Both", command=lambda: self.image_processor.flip_image(-1))
-        self.edit_menu.add_command(label="Brightness", command=self.image_processor.adjust_brightness)
+        self.edit_menu.add_command(label="Brightness", command=self.image_processor.adjust_brightness_window)
         self.edit_menu.add_command(label="Convert to RGB", command=self.image_processor.convert_Rgb)
         self.edit_menu.add_command(label="Convert to HSV", command=self.image_processor.convert_Hsv)
         self.edit_menu.add_command(label="Convert to Gray", command=self.image_processor.convert_Gray)
