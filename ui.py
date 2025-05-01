@@ -176,7 +176,7 @@ class ImageEditorUI:
         self.edit_menu.add_command(label="Convert to RGB", command=self.image_processor.convert_Rgb)
         self.edit_menu.add_command(label="Convert to HSV", command=self.image_processor.convert_Hsv)
         self.edit_menu.add_command(label="Convert to Gray", command=self.image_processor.convert_Gray)
-        self.edit_menu.add_command(label="Convert to Binary", command=self.image_processor.convert_Binary)
+        self.edit_menu.add_command(label="Convert to Binary", command=self.image_processor.adjust_threshold)
         self.edit_menu.add_command(label="Split Channels", command=self.image_processor.split_channels)
         self.edit_menu.add_command(label="Normalize", command=self.image_processor.normalize_image)
         self.edit_menu.add_command(label="Histogram", command=self.image_processor.show_histogram)
