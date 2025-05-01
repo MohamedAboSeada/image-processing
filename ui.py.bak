@@ -5,15 +5,22 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class ImageEditorUI:
-    def __init__(self, root, app):
+    def __init__(self, root, image_processor):
         self.root = root
         self.root.title("Advanced Image Editor")
         self.root.geometry("1000x700")
-        self.app = app
+        self.image_processor = image_processor
         self.show_original = True  # Default to showing original image
 
         self.create_widgets()
         self.setup_menus()
+
+        # Bind keyboard shortcuts
+        self.root.bind('<Control-z>', lambda event: self.image_processor.undo())
+        self.root.bind('<Control-y>', lambda event: self.image_processor.redo())
+
+        # Bind window resize event
+        self.root.bind('<Configure>', self.on_window_resize)
 
     def create_widgets(self):
         # Frames
@@ -22,12 +29,12 @@ class ImageEditorUI:
 
         # Basic buttons
         basic_buttons = [
-            ("Open Image", self.app.open_image),
-            ("Save Image", self.app.save_image),
-            ("Undo", self.app.undo),
-            ("Redo", self.app.redo),
-            ("Reset Image", self.app.reset_image),
-            ("Close Image", self.app.close_image)
+            ("Open Image", self.image_processor.open_image),
+            ("Save Image", self.image_processor.save_image),
+            ("Undo", self.image_processor.undo),
+            ("Redo", self.image_processor.redo),
+            ("Reset Image", self.image_processor.reset_image),
+            ("Close Image", self.image_processor.close_image)
         ]
 
         for text, command in basic_buttons:
@@ -54,7 +61,7 @@ class ImageEditorUI:
 
         self.filter_menu_button = ctk.CTkButton(self.frame_left, text="Filter", command=self.show_filter_menu)
         self.filter_menu_button.pack(pady=5)
-        
+
         self.matplot_menu_button = ctk.CTkButton(self.frame_left, text="Matplot", command=self.show_matplot_menu)
         self.matplot_menu_button.pack(pady=5)
 
@@ -93,6 +100,11 @@ class ImageEditorUI:
         self.canvas_edited.get_tk_widget().configure(bg="#333")  # Set background color
         self.canvas_edited.get_tk_widget().pack(expand=True, fill="both")
 
+    def on_window_resize(self, event):
+        if hasattr(self, 'image_label') and hasattr(self, 'image_label_original'):
+            if self.image_processor.cv_image is not None and self.image_processor.original_image is not None:
+                self.update_display(self.image_processor.cv_image, self.image_processor.original_image)
+
     def update_display(self, cv_image, original_image):
         if cv_image is None or original_image is None:
             return
@@ -123,7 +135,7 @@ class ImageEditorUI:
             self.original_container.pack_forget()
             self.toggle_button.configure(text="Show Original", fg_color="green", hover_color="#228B22")
         # Update display to handle the new layout
-        self.update_display(self.app.cv_image, self.app.original_image)
+        self.update_display(self.image_processor.cv_image, self.image_processor.original_image)
 
     def refresh_history(self, history_list):
         self.history_listbox.delete("1.0", "end")
@@ -159,35 +171,34 @@ class ImageEditorUI:
     def setup_menus(self):
         # Edit menu
         self.edit_menu = Menu(self.root, tearoff=0)
-        self.edit_menu.add_command(label="Resize", command=self.app.resize_image)
-        self.edit_menu.add_command(label="Crop", command=self.app.crop_image)
-        self.edit_menu.add_command(label="Rotate", command=self.app.open_rotate_window)
-        self.edit_menu.add_command(label="Flip", command=self.app.open_flip_window)
-        self.edit_menu.add_command(label="Brightness", command=self.app.open_brightness_window)
-        self.edit_menu.add_command(label="Color Conversion", command=self.app.open_color_conversion_window)
-        self.edit_menu.add_command(label="Threshold", command=self.app.open_threshold_window)
-        self.edit_menu.add_command(label="Normalize", command=self.app.normalize_image)
-        self.edit_menu.add_command(label="Double Exposure", command=self.app.open_double_exposure_window)
-        self.edit_menu.add_command(label="Compare", command=self.app.open_compare_window)
+        self.edit_menu.add_command(label="Resize", command=self.image_processor.resize_image)
+        self.edit_menu.add_command(label="Crop", command=self.image_processor.crop_image)
+        self.edit_menu.add_command(label="Rotate", command=self.image_processor.rotate_image_window)
+        self.edit_menu.add_command(label="Flip", command=self.image_processor.adjust_flip)
+        self.edit_menu.add_command(label="Brightness", command=self.image_processor.adjust_brightness_window)
+        self.edit_menu.add_command(label="Color Conversion", command=self.image_processor.color_conversion_window)
+        self.edit_menu.add_command(label="threshold", command=self.image_processor.adjust_threshold)
+        self.edit_menu.add_command(label="Normalize", command=self.image_processor.normalize_image)
+        self.edit_menu.add_command(label="Double Exposure", command=self.image_processor.double_exposure_window)
 
         # Filter menu
         self.filter_menu = Menu(self.root, tearoff=0)
-        self.filter_menu.add_command(label="Add Salt & Pepper Noise", command=self.app.add_salt_pepper_noise)
-        self.filter_menu.add_command(label="Speckle Noise", command=self.app.apply_speckle_noise)
-        self.filter_menu.add_command(label="Poisson Noise", command=self.app.apply_poisson_noise)
-        self.filter_menu.add_command(label="Uniform Noise", command=self.app.apply_uniform_noise)
-        self.filter_menu.add_command(label="Equalize Histogram", command=self.app.equalize_histogram)
-        self.filter_menu.add_command(label="Averaging Filter", command=self.app.apply_averaging_filter)
-        self.filter_menu.add_command(label="Weighted Averaging Filter", command=self.app.apply_weighted_averaging_filter)
-        self.filter_menu.add_command(label="Gaussian Filter", command=self.app.apply_gaussian_filter)
-        self.filter_menu.add_command(label="Median Filter", command=self.app.open_median_filter_window)
-        self.filter_menu.add_command(label="Max Filter", command=self.app.open_max_filter_window)
-        self.filter_menu.add_command(label="Min Filter", command=self.app.open_min_filter_window)
-        
+        self.filter_menu.add_command(label="Add Salt & Pepper Noise", command=self.image_processor.add_salt_pepper_noise)
+        self.filter_menu.add_command(label="Speckle Noise", command=self.image_processor.apply_speckle_noise)
+        self.filter_menu.add_command(label="Poisson Noise", command=self.image_processor.apply_poisson_noise)
+        self.filter_menu.add_command(label="Uniform Noise", command=self.image_processor.apply_uniform_noise)
+        self.filter_menu.add_command(label="Equalize Histogram", command=self.image_processor.equalize_histogram)
+        self.filter_menu.add_command(label="Averaging Filter", command=self.image_processor.apply_averaging_filter)
+        self.filter_menu.add_command(label="Weighted Averaging Filter", command=self.image_processor.apply_weighted_averaging_filter)
+        self.filter_menu.add_command(label="Gaussian Filter", command=self.image_processor.apply_gaussian_filter)
+        self.filter_menu.add_command(label="Median Filter", command=self.image_processor.apply_median_filter)
+        self.filter_menu.add_command(label="Max Filter", command=self.image_processor.apply_max_filter)
+        self.filter_menu.add_command(label="Min Filter", command=self.image_processor.apply_min_filter)
+
         # Matplot menu
         self.matplot_menu = Menu(self.root, tearoff=0)
-        self.matplot_menu.add_command(label="Split Channels", command=self.app.split_channels)
-        self.matplot_menu.add_command(label="Histogram", command=self.app.show_histogram)
+        self.matplot_menu.add_command(label="Split Channels", command=self.image_processor.split_channels)
+        self.matplot_menu.add_command(label="Histogram", command=self.image_processor.show_histogram)
 
     def show_edit_menu(self):
         x = self.edit_menu_button.winfo_rootx()
@@ -198,7 +209,7 @@ class ImageEditorUI:
         x = self.filter_menu_button.winfo_rootx()
         y = self.filter_menu_button.winfo_rooty() + self.filter_menu_button.winfo_height()
         self.filter_menu.tk_popup(x, y)
-        
+
     def show_matplot_menu(self):
         x = self.matplot_menu_button.winfo_rootx()
         y = self.matplot_menu_button.winfo_rooty() + self.matplot_menu_button.winfo_height()
