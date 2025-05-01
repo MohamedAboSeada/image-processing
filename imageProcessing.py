@@ -287,6 +287,53 @@ class ImageProcessor:
         self.cv_image = noisy
         self.ui.update_display(self.cv_image, self.original_image)
 
+    def apply_gaussian_noise(self, mean=0, var=0.1):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        row, col, ch = self.cv_image.shape
+        sigma = var ** 0.5
+        gauss = np.random.normal(mean, sigma, (row, col, ch)).reshape(row, col, ch)
+        noisy = np.clip(self.cv_image + gauss, 0, 255).astype(np.uint8)
+        self.push_undo("Applied Gaussian Noise")
+        self.cv_image = noisy
+        self.ui.update_display(self.cv_image, self.original_image)
+
+    def apply_speckle_noise(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        row, col, ch = self.cv_image.shape
+        gauss = np.random.normal(0, 1, (row, col, ch)).reshape(row, col, ch)
+        noisy = np.clip(self.cv_image + self.cv_image * gauss, 0, 255).astype(np.uint8)
+        self.push_undo("Applied Speckle Noise")
+        self.cv_image = noisy
+        self.ui.update_display(self.cv_image, self.original_image)
+
+    def apply_poisson_noise(self):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        noisy = np.random.poisson(self.cv_image / 255.0 * 255).astype(np.uint8)
+        self.push_undo("Applied Poisson Noise")
+        self.cv_image = np.clip(noisy, 0, 255)
+        self.ui.update_display(self.cv_image, self.original_image)
+
+    def apply_uniform_noise(self, low=0, high=50):
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+
+        row, col, ch = self.cv_image.shape
+        noise = np.random.uniform(low, high, (row, col, ch)).reshape(row, col, ch)
+        noisy = np.clip(self.cv_image + noise, 0, 255).astype(np.uint8)
+        self.push_undo("Applied Uniform Noise")
+        self.cv_image = noisy
+        self.ui.update_display(self.cv_image, self.original_image)
+        
     def apply_averaging_filter(self):
         self.push_undo("Averaging Filter")
         kernel = np.ones((5, 5), np.float32) / 25
