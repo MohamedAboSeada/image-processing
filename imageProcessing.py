@@ -88,13 +88,13 @@ class ImageProcessor:
             self.ui.update_display(self.cv_image, self.original_image)
 
     def crop_image(self):
-        values = simpledialog.askstring("Enter x, y, width, height (comma separated):")
+        values = simpledialog.askstring("Crop", "Enter x, y, width, height (comma separated):")
         if values:
             try:
                 x, y, w, h = map(int, values.split(","))
-                self.push_undo("Crop")
+                self.push_undo('Crop')
                 self.cv_image = self.cv_image[y:y+h, x:x+w]
-                self.ui.update_display(self.cv_image, self.original_image)
+                self.ui.update_display(self.cv_image, self.original_image)  # Fixed method call
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter four valid integers separated by commas.")
 
@@ -151,11 +151,24 @@ class ImageProcessor:
 
     def split_channels(self):
         b, g, r = cv2.split(self.cv_image)
-        cv2.imshow("Blue", b)
-        cv2.imshow("Green", g)
-        cv2.imshow("Red", r)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        plt.figure(figsize=(12, 4))
+        plt.subplot(1, 3, 1)
+        plt.imshow(b, cmap='gray')
+        plt.title("Blue Channel")
+        plt.axis('off')
+
+        plt.subplot(1, 3, 2)
+        plt.imshow(g, cmap='gray')
+        plt.title("Green Channel")
+        plt.axis('off')
+
+        plt.subplot(1, 3, 3)
+        plt.imshow(r, cmap='gray')
+        plt.title("Red Channel")
+        plt.axis('off')
+
+        plt.tight_layout()
+        plt.show()
 
     def normalize_image(self):
         self.push_undo("Normalize")
@@ -300,4 +313,4 @@ class ImageProcessor:
                 self.original_image = None
                 self.undo_stack.clear()
                 self.history_list.clear()
-                self.ui.reset_interface() 
+                self.ui.reset_interface()
