@@ -18,6 +18,8 @@ from windows.filter_windows import (
 )
 from windows.double_exposure_window import DoubleExposureWindow
 from windows.compare_window import CompareWindow
+from windows.resize_window import ResizeWindow
+from windows.crop_window import CropWindow
 
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("green")
@@ -307,36 +309,18 @@ class ImageEditorApp:
 
     # Simple operations (no window needed)
     def resize_image(self):
-        """Resize the current image"""
+        """Open the resize window"""
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
             return
-
-        from tkinter import simpledialog
-        values = simpledialog.askstring("Resize", "Enter width, height (comma separated):")
-        if values:
-            try:
-                w, h = map(int, values.split(","))
-                result_image = self.image_processor.resize(self.cv_image, w, h)
-                self.apply_operation(result_image, "Resize")
-            except ValueError:
-                messagebox.showerror("Invalid Input", "Please enter two valid integers separated by a comma.")
+        ResizeWindow(self.root, self)
 
     def crop_image(self):
-        """Crop the current image"""
+        """Open the crop window"""
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
             return
-
-        from tkinter import simpledialog
-        values = simpledialog.askstring("Crop", "Enter x, y, width, height (comma separated):")
-        if values:
-            try:
-                x, y, w, h = map(int, values.split(","))
-                result_image = self.image_processor.crop(self.cv_image, x, y, w, h)
-                self.apply_operation(result_image, "Crop")
-            except ValueError:
-                messagebox.showerror("Invalid Input", "Please enter four valid integers separated by commas.")
+        CropWindow(self.root, self)
 
     def normalize_image(self):
         """Normalize the current image"""
