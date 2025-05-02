@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
-import random
 import matplotlib.pyplot as plt
-from PIL import Image
 
 class ImageProcessor:
     """Class for image processing operations"""
