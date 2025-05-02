@@ -14,8 +14,7 @@ from windows.threshold_window import ThresholdWindow
 from windows.flip_window import FlipWindow
 from windows.filter_windows import (
     MedianFilterWindow, MaxFilterWindow, MinFilterWindow,
-    AveragingFilterWindow, WeightedAveragingFilterWindow, GaussianFilterWindow,
-    SaltPepperNoiseWindow, SpeckleNoiseWindow, UniformNoiseWindow, PoissonNoiseWindow
+    AveragingFilterWindow, WeightedAveragingFilterWindow, GaussianFilterWindow
 )
 from windows.double_exposure_window import DoubleExposureWindow
 from windows.compare_window import CompareWindow
@@ -358,32 +357,40 @@ class ImageEditorApp:
         self.apply_operation(result_image, "Equalize Histogram")
 
     def add_salt_pepper_noise(self):
-        """Open the salt and pepper noise window"""
+        """Add salt and pepper noise to the current image"""
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
             return
-        SaltPepperNoiseWindow(self.root, self)
+
+        result_image = self.image_processor.add_salt_pepper_noise(self.cv_image)
+        self.apply_operation(result_image, "Add Salt & Pepper Noise")
 
     def apply_speckle_noise(self):
-        """Open the speckle noise window"""
+        """Add speckle noise to the current image"""
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
             return
-        SpeckleNoiseWindow(self.root, self)
+
+        result_image = self.image_processor.apply_speckle_noise(self.cv_image)
+        self.apply_operation(result_image, "Add Speckle Noise")
 
     def apply_poisson_noise(self):
-        """Open the Poisson noise window"""
+        """Add Poisson noise to the current image"""
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
             return
-        PoissonNoiseWindow(self.root, self)
+
+        result_image = self.image_processor.apply_poisson_noise(self.cv_image)
+        self.apply_operation(result_image, "Add Poisson Noise")
 
     def apply_uniform_noise(self):
-        """Open the uniform noise window"""
+        """Add uniform noise to the current image"""
         if self.cv_image is None:
             messagebox.showwarning("No Image", "Please load an image first.")
             return
-        UniformNoiseWindow(self.root, self)
+
+        result_image = self.image_processor.apply_uniform_noise(self.cv_image)
+        self.apply_operation(result_image, "Add Uniform Noise")
 
     def apply_averaging_filter(self):
         """Open the averaging filter window"""

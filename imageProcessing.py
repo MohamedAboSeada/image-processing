@@ -193,7 +193,7 @@ class ImageProcessor:
         # Convert back to BGR
         return cv2.cvtColor(yuv, cv2.COLOR_YUV2BGR)
 
-    def add_salt_pepper_noise(self, image, salt_prob=0.01, pepper_prob=0.01):
+    def add_salt_pepper_noise(self, image, salt_prob=0.03, pepper_prob=0.03):
         """
         Add salt and pepper noise to an image
 
@@ -234,7 +234,7 @@ class ImageProcessor:
 
         return noisy
 
-    def apply_speckle_noise(self, image, intensity=0.1):
+    def apply_speckle_noise(self, image, intensity=0.3):
         """
         Add speckle noise to an image
 
@@ -274,23 +274,28 @@ class ImageProcessor:
         # Create a copy of the image to avoid modifying the original
         noisy = np.zeros_like(image, dtype=np.float32)
 
+        # Scale factor to make noise more visible
+        scale_factor = 0.5  # Lower values make noise more pronounced
+
         # Handle color and grayscale images
         if len(image.shape) == 3:  # Color image
             # Process each channel separately
             for c in range(image.shape[2]):
                 # Scale values for Poisson distribution (which works better with larger values)
-                # Use a scaling factor to make the noise more visible
-                vals = image[..., c].astype(np.float32)
+                vals = image[..., c].astype(np.float32) * scale_factor
                 # Generate noise using Poisson distribution
-                noisy[..., c] = np.random.poisson(np.maximum(vals, 1)).astype(np.float32)
+                noise = np.random.poisson(np.maximum(vals, 1)).astype(np.float32) / scale_factor
+                # Add some contrast to make noise more visible
+                noisy[..., c] = noise
         else:  # Grayscale image
-            vals = image.astype(np.float32)
-            noisy = np.random.poisson(np.maximum(vals, 1)).astype(np.float32)
+            vals = image.astype(np.float32) * scale_factor
+            noise = np.random.poisson(np.maximum(vals, 1)).astype(np.float32) / scale_factor
+            noisy = noise
 
         # Normalize back to 0-255 range and convert to uint8
         return np.clip(noisy, 0, 255).astype(np.uint8)
 
-    def apply_uniform_noise(self, image, low=-10, high=10):
+    def apply_uniform_noise(self, image, low=-50, high=50):
         """
         Add uniform noise to an image
 
