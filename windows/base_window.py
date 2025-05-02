@@ -26,8 +26,21 @@ class BaseWindow:
 
     def create_preview_canvas(self):
         """Create a canvas for image preview"""
-        self.canvas = ctk.CTkLabel(self.window, text="")
+        # Create main container frame
+        self.main_container = ctk.CTkFrame(self.window)
+        self.main_container.pack(expand=True, fill="both", padx=10, pady=10)
+
+        # Create left frame for preview
+        self.preview_frame = ctk.CTkFrame(self.main_container)
+        self.preview_frame.pack(side="left", expand=True, fill="both", padx=5, pady=5)
+
+        # Create canvas in preview frame
+        self.canvas = ctk.CTkLabel(self.preview_frame, text="")
         self.canvas.pack(expand=True, fill="both")
+
+        # Create right frame for controls
+        self.controls_container = ctk.CTkFrame(self.main_container)
+        self.controls_container.pack(side="right", fill="y", padx=5, pady=5)
 
     def create_button_frame(self):
         """Create a frame for buttons"""

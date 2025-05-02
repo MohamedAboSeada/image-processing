@@ -13,8 +13,12 @@ class FilterWindow(BaseWindow):
         # Create a preview canvas
         self.create_preview_canvas()
 
+        # Create controls frame
+        self.controls_frame = ctk.CTkFrame(self.controls_container)
+        self.controls_frame.pack(pady=10)
+
         # Create a frame for kernel size control
-        self.kernel_frame = ctk.CTkFrame(self.window)
+        self.kernel_frame = ctk.CTkFrame(self.controls_frame)
         self.kernel_frame.pack(pady=10)
 
         self.kernel_label = ctk.CTkLabel(self.kernel_frame, text="Kernel Size:")
@@ -218,7 +222,7 @@ class GaussianFilterWindow(FilterWindow):
         super().__init__(root, image_processor, title="Gaussian Filter Control")
 
         # Add sigma control
-        self.sigma_frame = ctk.CTkFrame(self.window)
+        self.sigma_frame = ctk.CTkFrame(self.controls_frame)
         self.sigma_frame.pack(pady=10)
 
         self.sigma_label = ctk.CTkLabel(self.sigma_frame, text="Sigma:")
