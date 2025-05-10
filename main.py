@@ -1,8 +1,10 @@
 import customtkinter as ctk
 import cv2
 import os
+import sys
 from PIL import Image
 from tkinter import filedialog, messagebox
+from utils import resource_path
 
 from ui import ImageEditorUI
 from imageProcessing import ImageProcessor
@@ -26,11 +28,21 @@ from windows.custom_laplacian_window import CustomLaplacianWindow
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("green")
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 class ImageEditorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Advanced Image Editor")
-        self.root.iconbitmap("assets/logo.ico")
+        self.root.iconbitmap(resource_path("assets/logo.ico"))
 
         # Initialize image processor
         self.image_processor = ImageProcessor()

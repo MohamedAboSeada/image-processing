@@ -29,3 +29,8 @@ Thumbs.db
 
 # Compiled C extensions
 *.so
+
+# PyInstaller
+dist/
+build/
+ImageEditor.spec

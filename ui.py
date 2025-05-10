@@ -4,6 +4,7 @@ from tkinter import Menu
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image
+from utils import resource_path
 
 class ImageEditorUI:
     def __init__(self, root, app):
@@ -60,7 +61,7 @@ class ImageEditorUI:
         self.matplot_menu_button.pack(pady=5)
 
         # Add logo at the bottom of frame_left
-        self.logo_image = ctk.CTkImage(Image.open("assets/logo-trans.png"),size=(70, 70))
+        self.logo_image = ctk.CTkImage(Image.open(resource_path("assets/logo-trans.png")),size=(70, 70))
         self.logo_label = ctk.CTkLabel(self.frame_left, image=self.logo_image, text="")
         self.logo_label.pack(side="bottom", pady=10)
 
