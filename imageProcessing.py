@@ -403,6 +403,34 @@ class ImageProcessor:
         kernel = np.ones((kernel_size, kernel_size), np.uint8)
         return cv2.erode(image, kernel)
 
+    def apply_laplacian(self, image, kernel_size=3, alpha=0.5):
+        """
+        Apply Laplacian sharpening: add the Laplacian result to the original image.
+        Args:
+            image: The image to process
+            kernel_size: The size of the Laplacian kernel (must be odd)
+            alpha: The scaling factor for the Laplacian result
+        Returns:
+            The sharpened image
+        """
+        if kernel_size % 2 == 0:
+            kernel_size += 1
+        if len(image.shape) == 3:
+            # Color: apply Laplacian to each channel
+            channels = cv2.split(image)
+            sharp_channels = []
+            for ch in channels:
+                lap = cv2.Laplacian(ch, cv2.CV_16S, ksize=kernel_size)
+                lap = cv2.convertScaleAbs(lap)
+                sharp = cv2.addWeighted(ch, 1.0, lap, alpha, 0)
+                sharp_channels.append(sharp)
+            out = cv2.merge(sharp_channels)
+        else:
+            lap = cv2.Laplacian(image, cv2.CV_16S, ksize=kernel_size)
+            lap = cv2.convertScaleAbs(lap)
+            out = cv2.addWeighted(image, 1.0, lap, alpha, 0)
+        return np.clip(out, 0, 255).astype(np.uint8)
+
     def blend_images(self, image1, image2, alpha=0.5):
         """
         Blend two images together
@@ -417,3 +445,57 @@ class ImageProcessor:
         """
         beta = 1.0 - alpha
         return cv2.addWeighted(image1, alpha, image2, beta, 0)
+
+    def apply_log(self, image, kernel_size=3, sigma=1.0, alpha=0.9):
+        """
+        Apply Laplacian of Gaussian (LoG) filter to an image, matching the provided code logic.
+
+        Args:
+            image: The image to process
+            kernel_size: The size of the Laplacian kernel (must be odd)
+            sigma: The standard deviation for Gaussian blur
+            alpha: The blending factor for addWeighted
+
+        Returns:
+            The processed image
+        """
+        if kernel_size % 2 == 0:
+            kernel_size += 1
+        # Gaussian blur
+        g = cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
+        # Convert to grayscale
+        if len(g.shape) == 3:
+            img_g = cv2.cvtColor(g, cv2.COLOR_BGR2GRAY)
+        else:
+            img_g = g.copy()
+        # Laplacian
+        shar = cv2.Laplacian(img_g, -1, ksize=kernel_size)
+        # Blend
+        out = cv2.addWeighted(img_g, alpha, shar, alpha, 0)
+        # Convert back to BGR if original was color
+        if len(image.shape) == 3:
+            out = cv2.cvtColor(out, cv2.COLOR_GRAY2BGR)
+        return out
+
+    def apply_custom_laplacian(self, image, alpha=0.5):
+        """
+        Apply a custom Laplacian kernel [[1,1,1],[1,-8,1],[1,1,1]] and add the result to the original image for sharpening.
+        Args:
+            image: The image to process
+            alpha: The scaling factor for the Laplacian result
+        Returns:
+            The sharpened image
+        """
+        kernel = np.array([[1,1,1],[1,-8,1],[1,1,1]])
+        if len(image.shape) == 3:
+            channels = cv2.split(image)
+            sharp_channels = []
+            for ch in channels:
+                lap = cv2.filter2D(ch, -1, kernel)
+                sharp = cv2.addWeighted(ch, 1.0, lap, alpha, 0)
+                sharp_channels.append(sharp)
+            out = cv2.merge(sharp_channels)
+        else:
+            lap = cv2.filter2D(image, -1, kernel)
+            out = cv2.addWeighted(image, 1.0, lap, alpha, 0)
+        return np.clip(out, 0, 255).astype(np.uint8)

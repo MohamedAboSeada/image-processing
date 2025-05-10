@@ -193,6 +193,9 @@ class ImageEditorUI:
         self.filter_menu.add_command(label="Median Filter", command=self.app.open_median_filter_window)
         self.filter_menu.add_command(label="Max Filter", command=self.app.open_max_filter_window)
         self.filter_menu.add_command(label="Min Filter", command=self.app.open_min_filter_window)
+        self.filter_menu.add_command(label="Laplacian", command=self.app.open_laplacian_window)
+        self.filter_menu.add_command(label="LoG (Laplacian of Gaussian)", command=self.app.open_log_window)
+        self.filter_menu.add_command(label="Custom Laplacian", command=self.app.open_custom_laplacian_window)
         
         # Matplot menu
         self.matplot_menu = Menu(self.root, tearoff=0)

@@ -19,6 +19,9 @@ from windows.double_exposure_window import DoubleExposureWindow
 from windows.compare_window import CompareWindow
 from windows.resize_window import ResizeWindow
 from windows.crop_window import CropWindow
+from windows.laplacian_window import LaplacianWindow
+from windows.log_window import LogWindow
+from windows.custom_laplacian_window import CustomLaplacianWindow
 
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("green")
@@ -395,6 +398,27 @@ class ImageEditorApp:
             messagebox.showwarning("No Image", "Please load an image first.")
             return
         GaussianFilterWindow(self.root, self)
+
+    def open_laplacian_window(self):
+        """Open the Laplacian window"""
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+        LaplacianWindow(self.root, self)
+
+    def open_log_window(self):
+        """Open the LoG (Laplacian of Gaussian) window"""
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+        LogWindow(self.root, self)
+
+    def open_custom_laplacian_window(self):
+        """Open the custom Laplacian window"""
+        if self.cv_image is None:
+            messagebox.showwarning("No Image", "Please load an image first.")
+            return
+        CustomLaplacianWindow(self.root, self)
 
     def split_channels(self):
         """Split the current image into its color channels"""
