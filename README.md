@@ -74,3 +74,46 @@ See the `tests/README.md` file for more information about the test suite.
 ## License
 
 This project is open source and available under the MIT License.
+
+## Building the Executable Locally
+
+If you want to create a standalone executable (for Windows) instead of running the program with Python, you can build it yourself locally. This avoids downloading a large pre-built binary and ensures compatibility with your system.
+
+### Steps:
+
+1. **Clone the repository**
+2. **Install dependencies**
+
+   You can use the provided batch script (Windows):
+
+   ```
+   install_dependencies.bat
+   ```
+
+   Or manually:
+
+   ```
+   pip install -r requirements.txt
+   ```
+
+3. **Build the executable**
+
+   Run the build script:
+
+   ```
+   python build.py
+   ```
+
+   This will generate the standalone executable in the `dist` folder (e.g., `dist/ImageEditor.exe`).
+
+4. **Run the program**
+
+   Double-click the executable in the `dist` folder, or run:
+
+   ```
+   dist/ImageEditor.exe
+   ```
+
+**Note:**
+
+- If you encounter any issues, make sure all dependencies are installed and you are using a compatible version of Python (3.6+).
